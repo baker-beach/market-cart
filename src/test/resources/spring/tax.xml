@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<bean id="taxService" class="com.bakerbeach.market.core.service.tax.TaxServiceImpl">
+		<property name="dao">
+			<bean class="com.bakerbeach.market.core.service.tax.SimpleTaxDAO">
+				<constructor-arg name="map">
+					<map value-type="java.math.BigDecimal">
+						<entry key="DE|NORMAL|NORMAL" value="0.19" />
+						<entry key="DE|REDUCED|NORMAL" value="0.07" />
+						<entry key="DE|ZERO|NORMAL" value="0" />
+						<entry key="DE|NORMAL|REDUCED" value="0" />
+						<entry key="DE|REDUCED|REDUCED" value="0" />
+						<entry key="DE|ZERO|REDUCED" value="0" />
+					</map>
+				</constructor-arg>
+				<property name="failoverKey" value="DE|NORMAL|NORMAL" />
+			</bean>
+		</property>
+	</bean>
+
+</beans>
