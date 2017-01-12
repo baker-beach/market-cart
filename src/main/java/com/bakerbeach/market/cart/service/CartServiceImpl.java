@@ -41,6 +41,7 @@ import com.bakerbeach.market.core.api.model.CartItem.CartItemComponent;
 import com.bakerbeach.market.core.api.model.CartItem.CartItemOption;
 import com.bakerbeach.market.core.api.model.CartItemQualifier;
 import com.bakerbeach.market.core.api.model.Coupon;
+import com.bakerbeach.market.core.api.model.CouponError;
 import com.bakerbeach.market.core.api.model.CouponResult;
 import com.bakerbeach.market.core.api.model.Customer;
 import com.bakerbeach.market.core.api.model.Message;
@@ -614,6 +615,31 @@ public class CartServiceImpl implements CartService {
 		return null;
 	}
 
+	@Override
+	public Coupon getCoupon(String couponCode, Customer customer) {
+		Coupon coupon = couponStore.getCoupon(couponCode);
+		if (coupon != null) {
+			Boolean test = true;
+			
+			if (!coupon.checkTime(new Date())) {
+				test = false;
+			}
+			
+			if (coupon.getMaxIndividualUse() != null) {
+				Integer count = getIndividualUseCount(coupon.getCode(), customer.getId());
+				if (count >= coupon.getMaxIndividualUse()) {
+					test = false;
+				}
+			}
+			
+			if (test) {
+				return coupon;
+			}
+		}
+		
+		return null;
+	}
+	
 	public void setCouponDao(SimpleCouponDao couponDao) {
 		this.couponDao = couponDao;
 	}
