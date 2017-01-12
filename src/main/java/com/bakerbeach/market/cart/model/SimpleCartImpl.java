@@ -86,7 +86,7 @@ public class SimpleCartImpl implements Cart {
 		payment = null;
 		
 		total = null;
-		coupons = null;
+		coupons = new ArrayList<Coupon>(1);
 		
 		cartItems.clear();
 	}
