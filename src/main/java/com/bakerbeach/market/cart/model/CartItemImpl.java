@@ -67,8 +67,9 @@ public class CartItemImpl extends AbstractCartItem {
 		private String gtin;
 		private Integer quantity = 0;
 		private BigDecimal unitPrice = BigDecimal.ZERO;
-		@Transient
-		private BigDecimal totalPrice = BigDecimal.ZERO;
+		@Transient private BigDecimal totalPrice = BigDecimal.ZERO;
+		protected BigDecimal monthlyUnitPrice;
+		@Transient protected BigDecimal monthlyTotalPrice;
 		private String title1;
 		private String title2;
 		private String title3;
@@ -110,6 +111,14 @@ public class CartItemImpl extends AbstractCartItem {
 		public void setUnitPrice(BigDecimal unitPrice) {
 			this.unitPrice = unitPrice;
 		}
+		
+		public BigDecimal getMonthlyUnitPrice() {
+			return monthlyUnitPrice;
+		}
+		
+		public void setMonthlyUnitPrice(BigDecimal monthlyUnitPrice) {
+			this.monthlyUnitPrice = monthlyUnitPrice;
+		}
 
 		@Override
 		public BigDecimal getTotalPrice() {
@@ -119,6 +128,14 @@ public class CartItemImpl extends AbstractCartItem {
 		@Override
 		public void setTotalPrice(BigDecimal totalPrice) {
 			this.totalPrice = totalPrice;
+		}
+		
+		public BigDecimal getMonthlyTotalPrice() {
+			return monthlyTotalPrice;
+		}
+		
+		public void setMonthlyTotalPrice(BigDecimal monthlyTotalPrice) {
+			this.monthlyTotalPrice = monthlyTotalPrice;
 		}
 		
 		@Override

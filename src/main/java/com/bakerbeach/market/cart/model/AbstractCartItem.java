@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Transient;
 
 import com.bakerbeach.market.core.api.model.CartItem;
@@ -24,6 +23,8 @@ public abstract class AbstractCartItem implements CartItem{
 	protected Boolean isImmutable = false;
 	protected BigDecimal unitPrice;
 	@Transient protected BigDecimal totalPrice;
+	protected BigDecimal monthlyUnitPrice;
+	@Transient protected BigDecimal monthlyTotalPrice;
 	protected TaxCode taxCode;
 	protected BigDecimal taxPercent;
 	protected String title1;
@@ -142,12 +143,28 @@ public abstract class AbstractCartItem implements CartItem{
 		this.unitPrice = unitPrice;
 	}
 
+	public BigDecimal getMonthlyUnitPrice() {
+		return monthlyUnitPrice;
+	}
+	
+	public void setMonthlyUnitPrice(BigDecimal monthlyUnitPrice) {
+		this.monthlyUnitPrice = monthlyUnitPrice;
+	}
+	
 	public BigDecimal getTotalPrice() {
 		return totalPrice;
 	}
 
 	public void setTotalPrice(BigDecimal totalPrice) {
 		this.totalPrice = totalPrice;
+	}
+	
+	public BigDecimal getMonthlyTotalPrice() {
+		return monthlyTotalPrice;
+	}
+	
+	public void setMonthlyTotalPrice(BigDecimal monthlyTotalPrice) {
+		this.monthlyTotalPrice = monthlyTotalPrice;
 	}
 
 	public TaxCode getTaxCode() {
