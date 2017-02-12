@@ -45,6 +45,8 @@ public class SimpleCartImpl implements Cart {
 	@Property("created_by") protected String createdBy;
 	@Property("updated_at") protected Date updatedAt;
 	@Property("updated_by") protected String updatedBy;
+	
+	@Property("workflow") protected String workflow;
 		
 	@Version
 	private Long version;
@@ -296,6 +298,16 @@ public class SimpleCartImpl implements Cart {
 	
 	public void setVersion(Long version) {
 		this.version = version;
+	}
+	
+	@Override
+	public String getWorkflow() {
+		return workflow;
+	}
+	
+	@Override
+	public void setWorkflow(String workflow) {
+		this.workflow = workflow;
 	}
 	
 	@Override
