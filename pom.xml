@@ -10,12 +10,12 @@
 	<artifactId>market-cart</artifactId>
 	<name>market-cart</name>
 	<packaging>jar</packaging>
-	<version>2.0.1-SNAPSHOT</version>
+	<version>2.1.1</version>
 	<dependencies>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-cart-api</artifactId>
-			<version>[2.0.1-SNAPSHOT]</version>
+			<version>[2.1.0,2.2.0)</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
