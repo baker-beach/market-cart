@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
@@ -47,6 +49,8 @@ public class SimpleCartImpl implements Cart {
 	@Property("updated_by") protected String updatedBy;
 	
 	@Property("workflow") protected String workflow;
+	
+	protected Map<String, Object> attributes = new HashMap<String, Object>();
 		
 	@Version
 	private Long version;
@@ -308,6 +312,11 @@ public class SimpleCartImpl implements Cart {
 	@Override
 	public void setWorkflow(String workflow) {
 		this.workflow = workflow;
+	}
+	
+	@Override
+	public Map<String,Object> getAttributes() {
+		return attributes;
 	}
 	
 	@Override
