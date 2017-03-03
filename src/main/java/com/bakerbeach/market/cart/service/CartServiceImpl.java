@@ -15,7 +15,10 @@ import java.util.UUID;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.AdvancedDatastore;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.DatastoreImpl;
+import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,28 +53,56 @@ import com.bakerbeach.market.core.api.model.ShopContext;
 import com.bakerbeach.market.core.api.model.TaxCode;
 import com.bakerbeach.market.core.api.model.Total;
 import com.bakerbeach.market.core.api.model.Total.Line;
+import com.bakerbeach.market.morphia.BigDecimalConverter;
 import com.bakerbeach.market.shipping.api.model.ShippingContext;
 import com.bakerbeach.market.shipping.api.model.ShippingInfo;
 import com.bakerbeach.market.shipping.api.service.ShippingService;
 import com.bakerbeach.market.tax.api.service.TaxService;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 
 public class CartServiceImpl implements CartService {
 	protected static final Logger log = LoggerFactory.getLogger(CartServiceImpl.class);
 	private static final BigDecimal HUNDRED = new BigDecimal(100);
 
+	private String uri;
+	private String dbName;
+	private String packages;
+	
 	@Autowired
 	private TaxService taxService;
 
 	@Autowired
 	private ShippingService shippingService;
 
-	@Autowired
-	protected Datastore datastore;
+	private Morphia morphia = new Morphia();
+	private AdvancedDatastore datastore;
 
 	protected CouponStore couponStore;
 
 	protected SimpleCouponDao couponDao;
 	
+	public CartServiceImpl(String uri, String dbName, String packages) throws Exception {
+		this.uri = uri;
+		this.dbName = dbName;
+		this.packages = packages;
+		
+		init();
+	}
+
+	@SuppressWarnings("deprecation")
+	private void init() throws Exception {
+		MongoClientURI mongoClientURI = new MongoClientURI(uri);
+		MongoClient client = new MongoClient(mongoClientURI);
+
+		morphia.getMapper().getConverters().addConverter(BigDecimalConverter.class);
+		for (String pack : packages.split(",")) {
+			morphia.mapPackage(pack);
+		}
+
+		datastore = new DatastoreImpl(morphia, client, dbName);
+	}
+
 	@Override
 	public Cart getInstance(Customer customer) {
 		try {
