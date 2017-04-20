@@ -9,7 +9,7 @@ import org.mongodb.morphia.annotations.Transient;
 import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.TaxCode;
 
-public abstract class AbstractCartItem implements CartItem{
+public abstract class AbstractCartItem implements CartItem {
 	protected String id;
 	protected String qualifier;
 	protected String gtin;
@@ -22,9 +22,11 @@ public abstract class AbstractCartItem implements CartItem{
 	protected Boolean isVolatile = false;
 	protected Boolean isImmutable = false;
 	protected BigDecimal unitPrice;
-	@Transient protected BigDecimal totalPrice;
+	@Transient
+	protected BigDecimal totalPrice;
 	protected BigDecimal monthlyUnitPrice;
-	@Transient protected BigDecimal monthlyTotalPrice;
+	@Transient
+	protected BigDecimal monthlyTotalPrice;
 	protected TaxCode taxCode;
 	protected BigDecimal taxPercent;
 	protected String title1;
@@ -37,23 +39,23 @@ public abstract class AbstractCartItem implements CartItem{
 	@Deprecated
 	protected Map<String, BigDecimal> unitPrices = new HashMap<String, BigDecimal>();
 	protected Map<String, Object> attributes = new HashMap<String, Object>();
-	
+
 	@Override
 	public String toString() {
-        StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new StringBuilder();
 
-        builder.append("CartItem {");
-        builder.append("id: ").append(id).append(",");
-        builder.append("gtin: ").append(gtin).append(",");
-        builder.append("brand: ").append(brand).append(",");
-        builder.append("quantity: ").append(quantity).append(",");
-        builder.append("}");
+		builder.append("CartItem {");
+		builder.append("id: ").append(id).append(",");
+		builder.append("gtin: ").append(gtin).append(",");
+		builder.append("brand: ").append(brand).append(",");
+		builder.append("quantity: ").append(quantity).append(",");
+		builder.append("}");
 
-        return builder.toString();
+		return builder.toString();
 	}
 
 	@Override
-	public Map<String,Object> getAttributes() {
+	public Map<String, Object> getAttributes() {
 		return attributes;
 	}
 
@@ -64,11 +66,16 @@ public abstract class AbstractCartItem implements CartItem{
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
+	@Override
+	public String createId() {
+		throw new RuntimeException("not implemented!");
+	}
+
 	public String getQualifier() {
 		return qualifier;
 	}
-	
+
 	public void setQualifier(String qualifier) {
 		this.qualifier = qualifier;
 	}
@@ -76,7 +83,7 @@ public abstract class AbstractCartItem implements CartItem{
 	public String getGtin() {
 		return gtin;
 	}
-	
+
 	public void setGtin(String gtin) {
 		this.gtin = gtin;
 	}
@@ -85,34 +92,39 @@ public abstract class AbstractCartItem implements CartItem{
 	public String getName() {
 		return name;
 	}
-	
+
 	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public String getBrand() {
 		return brand;
 	}
-	
+
 	public void setBrand(String brand) {
 		this.brand = brand;
 	}
-	
+
 	public String getSupplier() {
 		return supplier;
 	}
-	
+
 	public void setSupplier(String supplier) {
 		this.supplier = supplier;
 	}
-	
+
 	public BigDecimal getQuantity() {
 		return quantity;
 	}
 
 	public void setQuantity(BigDecimal quantity) {
 		this.quantity = quantity;
+	}
+
+	@Override
+	public void addQuantity(BigDecimal quantity) {
+		this.quantity = this.quantity.add(quantity);
 	}
 
 	public BigDecimal getDiscount() {
@@ -127,12 +139,27 @@ public abstract class AbstractCartItem implements CartItem{
 		return isVolatile;
 	}
 
+	@Override
+	public void setIsVolatile(Boolean isVolatile) {
+		this.isVolatile = isVolatile;
+	}
+
 	public Boolean isVisible() {
 		return isVisible;
 	}
 
+	@Override
+	public void setIsVisible(Boolean isVisible) {
+		this.isVisible = isVisible;
+	}
+
 	public Boolean isImmutable() {
 		return isImmutable;
+	}
+
+	@Override
+	public void setIsImmutable(Boolean isImmutable) {
+		this.isImmutable = isImmutable;
 	}
 
 	public BigDecimal getUnitPrice() {
@@ -146,11 +173,11 @@ public abstract class AbstractCartItem implements CartItem{
 	public BigDecimal getMonthlyUnitPrice() {
 		return monthlyUnitPrice;
 	}
-	
+
 	public void setMonthlyUnitPrice(BigDecimal monthlyUnitPrice) {
 		this.monthlyUnitPrice = monthlyUnitPrice;
 	}
-	
+
 	public BigDecimal getTotalPrice() {
 		return totalPrice;
 	}
@@ -158,11 +185,11 @@ public abstract class AbstractCartItem implements CartItem{
 	public void setTotalPrice(BigDecimal totalPrice) {
 		this.totalPrice = totalPrice;
 	}
-	
+
 	public BigDecimal getMonthlyTotalPrice() {
 		return monthlyTotalPrice;
 	}
-	
+
 	public void setMonthlyTotalPrice(BigDecimal monthlyTotalPrice) {
 		this.monthlyTotalPrice = monthlyTotalPrice;
 	}
@@ -210,31 +237,31 @@ public abstract class AbstractCartItem implements CartItem{
 	public String getImageUrl1() {
 		return imageUrl1;
 	}
-	
+
 	public void setImageUrl1(String imageUrl1) {
 		this.imageUrl1 = imageUrl1;
 	}
-	
+
 	public String getImageUrl2() {
 		return imageUrl2;
 	}
-	
+
 	public void setImageUrl2(String imageUrl2) {
 		this.imageUrl2 = imageUrl2;
 	}
-	
+
 	public String getSize() {
 		return size;
 	}
-	
+
 	public void setSize(String size) {
 		this.size = size;
 	}
-	
+
 	public String getColor() {
 		return color;
 	}
-	
+
 	public void setColor(String color) {
 		this.color = color;
 	}
@@ -246,5 +273,75 @@ public abstract class AbstractCartItem implements CartItem{
 	public void setUnitPrices(Map<String, BigDecimal> unitPrices) {
 		this.unitPrices = unitPrices;
 	}
-	
+
+	@Override
+	public String getCode() {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public void setCode(String code) {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public Map<String, String> getTitle() {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public String getTitle(String key) {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public Map<String, String> getImages() {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public String getImage(String key) {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public Map<String, Option> getOptions() {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public Option newOption(String code, String parentCode) {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public BigDecimal getUnitPrice(String key) {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public void setUnitPrice(String string, BigDecimal value) {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public void addUnitPrices(Map<String, BigDecimal> unitPrices) {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public void multiplyUnitPrices(BigDecimal multiplicand) {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public Map<String, BigDecimal> getTotalPrices() {
+		throw new RuntimeException("not implemented!");
+	}
+
+	@Override
+	public BigDecimal getTotalPrice(String key) {
+		throw new RuntimeException("not implemented!");
+	}
+
 }

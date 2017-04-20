@@ -8,15 +8,39 @@
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
 	<bean id="cartService" class="com.bakerbeach.market.cart.service.CartServiceImpl" />
-
+	
+	<bean id="xCartService" class="com.bakerbeach.market.cart.service.XCartServiceImpl">
+		<property name="mongoCartDaos">
+			<map key-type="java.lang.String" value-type="com.bakerbeach.market.cart.dao.MongoCartDao">
+				<entry key="TEST_SHOP">
+					<bean class="com.bakerbeach.market.cart.dao.MongoCartDaoImpl">
+						<constructor-arg name="datastore" ref="datastore" />
+					</bean>
+				</entry>
+			</map>
+		</property>
+	</bean>
+	
+	<bean id="translationService"
+		class="com.bakerbeach.market.translation.service.TranslationServiceImpl">
+			<!--  
+		<property name="messageDao">
+			<bean id="mongoMessageDao" class="com.bakerbeach.market.core.service.MessageDaoImpl">
+				<property name="mongoTemplate" ref="cmsTemplate" />
+				<property name="messagesCollection" value="messages" />
+			</bean>
+		</property>
+			-->
+		<property name="defaultLocale" value="de" />
+	</bean>
+	
 	<bean id="morphia" class="org.mongodb.morphia.Morphia" />
-	
-	<bean id="datastore" factory-bean="datastoreFactory" factory-method="newInstance" />
-	
-	<bean id="datastoreFactory" class="com.bakerbeach.market.cart.db.DatastoreFactory">
+		
+	<bean id="datastore" class="com.bakerbeach.market.morphia.DatastoreFactory2">
 		<property name="morphia" ref="morphia" />
 		<property name="mongoClient" ref="mongoClient" />
 		<property name="dbName" value="${mongo.shop.dbName}" />
+		<property name="packages" value="com.bakerbeach.market.xcatalog.model,com.bakerbeach.market.cart.model" />
 	</bean>
 	
 </beans>

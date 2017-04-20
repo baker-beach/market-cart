@@ -52,38 +52,38 @@ public class SimpleCouponImpl implements Coupon {
 		try {
 			CouponResult couponResult = new CouponResult();
 			
-			if (context.containsKey("cartService") && context.containsKey("customer") && context.containsKey("cart")) {
-				CartService cartService = (CartService) context.get("cartService");
-				Customer customer = (Customer) context.get("customer");
-				Cart cart = (Cart) context.get("cart");
-				
-				if (!checkTime(new Date())) {
-					CouponError error = new CouponError("coupon.error.timespan", getStart(), getEnd());
-					couponResult.getErrors().add(error);
-					return couponResult;
-				}
-				
-				if (maxIndividualUse != null) {
-					Integer count = cartService.getIndividualUseCount(code, customer.getId());
-					if (count >= maxIndividualUse) {
-						setError(new CouponError("coupon.error.maxIndividualUse"));
-						couponResult.addError(error);
-						return couponResult;
-					}
-				}
-				
-				BigDecimal discount = BigDecimal.ZERO;
-				List<String> qualifiers = Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT);
-				for (CartItem item : cart.getCartItems()) {
-					if (qualifiers.contains(item.getQualifier())) {
-						String id = item.getId();
-						// TODO: check if reduced price
-						discount = discount.add(item.getTotalPrice().multiply(rate).setScale(2, BigDecimal.ROUND_HALF_DOWN).negate());
-					}
-				}
-				
-				couponResult.getDiscounts().put("total", discount);
-			}
+//			if (context.containsKey("cartService") && context.containsKey("customer") && context.containsKey("cart")) {
+//				CartService cartService = (CartService) context.get("cartService");
+//				Customer customer = (Customer) context.get("customer");
+//				Cart cart = (Cart) context.get("cart");
+//				
+//				if (!checkTime(new Date())) {
+//					CouponError error = new CouponError("coupon.error.timespan", getStart(), getEnd());
+//					couponResult.getErrors().add(error);
+//					return couponResult;
+//				}
+//				
+//				if (maxIndividualUse != null) {
+//					Integer count = cartService.getIndividualUseCount(code, customer.getId());
+//					if (count >= maxIndividualUse) {
+//						setError(new CouponError("coupon.error.maxIndividualUse"));
+//						couponResult.addError(error);
+//						return couponResult;
+//					}
+//				}
+//				
+//				BigDecimal discount = BigDecimal.ZERO;
+//				List<String> qualifiers = Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT);
+//				for (CartItem item : cart.getCartItems()) {
+//					if (qualifiers.contains(item.getQualifier())) {
+//						String id = item.getId();
+//						// TODO: check if reduced price
+//						discount = discount.add(item.getTotalPrice().multiply(rate).setScale(2, BigDecimal.ROUND_HALF_DOWN).negate());
+//					}
+//				}
+//				
+//				couponResult.getDiscounts().put("total", discount);
+//			}
 				
 			return couponResult;
 		} catch (Exception e) {
