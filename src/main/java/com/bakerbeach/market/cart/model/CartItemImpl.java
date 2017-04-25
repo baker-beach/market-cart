@@ -74,7 +74,7 @@ public class CartItemImpl extends AbstractCartItem {
 		private String title2;
 		private String title3;
 		private Map<String, BigDecimal> unitPrices = new HashMap<String, BigDecimal>();
-
+		private Map<String, Object> attributes = new HashMap<String, Object>();
 		
 		public CartItemOptionImpl() {	
 		}
@@ -175,6 +175,12 @@ public class CartItemImpl extends AbstractCartItem {
 		public void setUnitPrices(Map<String, BigDecimal> unitPrices) {
 			this.unitPrices = unitPrices;
 		}
+		
+		@Override
+		public Map<String, Object> getAttributes() {
+			return attributes;
+		}
+
 	}
 
 }
