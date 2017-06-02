@@ -28,6 +28,7 @@ import com.bakerbeach.market.commons.MessagesImpl;
 import com.bakerbeach.market.core.api.model.Cart;
 import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.CartItemQualifier;
+import com.bakerbeach.market.core.api.model.Coupon;
 import com.bakerbeach.market.core.api.model.Customer;
 import com.bakerbeach.market.core.api.model.ShopContext;
 import com.bakerbeach.market.core.api.model.TaxCode;
@@ -452,4 +453,17 @@ public class XCartServiceImpl implements CartService {
 		this.mongoCartDaos = mongoCartDaos;
 	}
 
+	@Override
+	public void setIndividualUse(Coupon coupon, String customerId, String orderId, Cart cart, String shopCode)
+			throws CartServiceException {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public void setStatus(Customer customer, Cart cart, String status) throws CartServiceException {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("not implemented");		
+	}
+	
 }

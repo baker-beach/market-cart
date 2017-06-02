@@ -549,4 +549,17 @@ public class CartServiceImpl implements CartService {
 		}
 	}
 
+	@Override
+	public void setIndividualUse(Coupon coupon, String customerId, String orderId, Cart cart, String shopCode)
+			throws CartServiceException {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public void setStatus(Customer customer, Cart cart, String status) throws CartServiceException {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("not implemented");		
+	}
+
 }
