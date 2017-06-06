@@ -131,7 +131,7 @@ public class XCartServiceImpl implements CartService {
 
 			CartItem item = cart.findItemById(id);
 			if (item != null) {
-				if (quantity.compareTo(BigDecimal.ZERO) == 0) {
+				if (quantity.compareTo(BigDecimal.ZERO) < 1) {
 					cart.remove(item);
 				} else {
 					item.setQuantity(quantity);
@@ -420,8 +420,7 @@ public class XCartServiceImpl implements CartService {
 		if (BigDecimal.ZERO.compareTo(shippingInfo.getCharges()) == -1) {
 			try {
 				CartItem cartItem = cart.getNewItem("shipping", BigDecimal.ONE);
-				// CartItem cartItem = getNewCartItem(shopContext, "shipping",
-				// BigDecimal.ONE);
+				cartItem.setId("shipping");
 				cartItem.setQualifier(CartItemQualifier.SHIPPING);
 				cartItem.setIsVisible(true);
 				cartItem.setIsVolatile(false);

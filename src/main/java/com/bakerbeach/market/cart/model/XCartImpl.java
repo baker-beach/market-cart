@@ -206,13 +206,12 @@ public class XCartImpl implements Cart {
 
 	@Override
 	public boolean add(CartItem item) {
-		if (items.containsKey(item.getId())) {
-			items.get(item.getId()).addQuantity(item.getQuantity());
-		} else {
-			items.put(item.getId(), item);
+		if (BigDecimal.ZERO.compareTo(item.getQuantity()) == -1) {
+			items.put(item.getId(), item);			
+			return true;
 		}
-
-		return true;
+		
+		return false;
 	}
 
 	@Override
