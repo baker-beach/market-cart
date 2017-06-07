@@ -23,6 +23,7 @@ public class XCartItemImpl implements CartItem {
 	protected Boolean isVisible = false;
 	protected Boolean isVolatile = false;
 	protected Boolean isImmutable = false;
+	protected Boolean isConfigurable = false;
 	protected TaxCode taxCode;
 	protected BigDecimal taxPercent;
 	protected String size;
@@ -52,8 +53,10 @@ public class XCartItemImpl implements CartItem {
 	@Override
 	public String createId() {
 		StringBuilder id = new StringBuilder(code);
-		for (Option o : options.values()) {
-			id.append(":").append(o.getCode()).append(":").append(o.getQuantity());
+		if (isConfigurable) {
+			for (Option o : options.values()) {
+				id.append(":").append(o.getCode()).append(":").append(o.getQuantity());
+			}			
 		}
 		return id.toString();
 	}
@@ -161,6 +164,16 @@ public class XCartItemImpl implements CartItem {
 	@Override
 	public void setIsImmutable(Boolean isImmutable) {
 		this.isImmutable = isImmutable;
+	}
+
+	@Override
+	public Boolean isConfigurable() {
+		return isConfigurable;
+	}
+	
+	@Override
+	public void setIsConfigurable(Boolean isConfigurable) {
+		this.isConfigurable = isConfigurable;
 	}
 
 	public BigDecimal getMonthlyUnitPrice() {

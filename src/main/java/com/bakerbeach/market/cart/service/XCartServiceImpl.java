@@ -99,8 +99,7 @@ public class XCartServiceImpl implements CartService {
 
 			cart.add(cartItem);
 
-			messages.add(new MessageImpl(Message.TYPE_INFO, "Cart item successfully added.", cartItem.getGtin(),
-					cartItem.getBrand(), cartItem.getQuantity()));
+			messages.add(new MessageImpl(Message.TYPE_INFO, "successfully.added.item", cartItem.getId(), cartItem.getCode(), cartItem.getQuantity()));
 			return messages;
 		} catch (CartServiceException e) {
 			return e.getMessages();
@@ -136,10 +135,11 @@ public class XCartServiceImpl implements CartService {
 				} else {
 					item.setQuantity(quantity);
 				}
+				
+				messages.addGlobalMessage(
+						new MessageImpl(Message.TYPE_INFO, "successfully.updated.item", item.getId(), item.getCode(), item.getQuantity()));
 			}
 
-			messages.addGlobalMessage(
-					new MessageImpl(Message.TYPE_INFO, "Cart item successfully updated.", item.getId()));
 			return messages;
 		} catch (CartServiceException e) {
 			return e.getMessages();

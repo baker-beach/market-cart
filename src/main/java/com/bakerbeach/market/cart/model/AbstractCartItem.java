@@ -21,6 +21,7 @@ public abstract class AbstractCartItem implements CartItem {
 	protected Boolean isVisible = false;
 	protected Boolean isVolatile = false;
 	protected Boolean isImmutable = false;
+	protected Boolean isConfigurable = false;
 	protected BigDecimal unitPrice;
 	@Transient
 	protected BigDecimal totalPrice;
@@ -160,6 +161,16 @@ public abstract class AbstractCartItem implements CartItem {
 	@Override
 	public void setIsImmutable(Boolean isImmutable) {
 		this.isImmutable = isImmutable;
+	}
+
+	@Override
+	public Boolean isConfigurable() {
+		return isConfigurable;
+	}
+	
+	@Override
+	public void setIsConfigurable(Boolean isConfigurable) {
+		this.isConfigurable = isConfigurable;
 	}
 
 	public BigDecimal getUnitPrice() {
