@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.bakerbeach.market.cart.api.model.CartRuleContext;
+import com.bakerbeach.market.cart.api.service.CartRuleService;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
 import com.bakerbeach.market.cart.dao.MongoCartDao;
@@ -54,6 +56,9 @@ public class XCartServiceImpl implements CartService {
 
 	@Autowired
 	protected TranslationService translationService;
+	
+	@Autowired
+	protected CartRuleService cartRuleService;
 
 	@Override
 	public Cart getInstance(ShopContext shopContext, Customer customer) throws CartServiceException {
@@ -267,23 +272,43 @@ public class XCartServiceImpl implements CartService {
 				CartItemQualifier.VPRODUCT, CartItemQualifier.SERVICE, CartItemQualifier.SHIPPING));
 
 		// TODO: cart discounts ---
+		try {
+			
+			CartRuleContext cartRuleContext = cartRuleService.getNewCartRuleContext(shopContext, customer, cart);
+			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		
+		
 		/*
-		 * List<Coupon> coupons = cart.getCoupons(); if (coupons != null) { for
-		 * (Coupon coupon : coupons) { try { Map<String, Object> context = new
-		 * HashMap<String, Object>(); context.put("cartService", this);
-		 * context.put("shopContext", shopContext); context.put("customer",
-		 * customer); context.put("cart", cart); CouponResult couponResult =
-		 * coupon.apply(context); // CouponResult couponResult =
-		 * coupon.apply(shopContext, // customer, cart); if
-		 * (!couponResult.hasErrors()) { if
-		 * (couponResult.getDiscounts().containsKey("total")) { BigDecimal
-		 * discount = couponResult.getDiscounts().get("total");
-		 * 
-		 * List<CartItem> cartDiscountItems = getCartDiscountItems(cart,
-		 * goodsAndServices, discount); cart.addAll(cartDiscountItems); } } }
-		 * catch (Exception e) { log.error(ExceptionUtils.getStackTrace(e)); } }
-		 * }
-		 */
+		List<Coupon> coupons = cart.getCoupons();
+		if (coupons != null) { 
+			for (Coupon coupon : coupons) { 
+				try { 
+					Map<String, Object> context = new HashMap<String, Object>(); 
+					context.put("cartService", this);
+					context.put("shopContext", shopContext); 
+					context.put("customer", customer); 
+					context.put("cart", cart); 
+					CouponResult couponResult = coupon.apply(context); 
+					// CouponResult couponResult = coupon.apply(shopContext, 
+					// customer, cart); 
+					if (!couponResult.hasErrors()) { 
+						if (couponResult.getDiscounts().containsKey("total")) { 
+							BigDecimal discount = couponResult.getDiscounts().get("total");
+							List<CartItem> cartDiscountItems = getCartDiscountItems(cart, goodsAndServices, discount); cart.addAll(cartDiscountItems); 
+						} 
+					} 
+				} catch (Exception e) { 
+					log.error(ExceptionUtils.getStackTrace(e)); 
+				} 
+			}
+		}
+		*/
+
 
 		// summe alle discounts ---
 		Total discount = calculateTotal(cart, Arrays.asList(CartItemQualifier.DISCOUNT));

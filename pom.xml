@@ -34,6 +34,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
+			<artifactId>market-shipping-api</artifactId>
+			<version>[3.0.0,3.1.0)</version>
+		</dependency>
+		<dependency>
+			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-shipping</artifactId>
 			<version>[3.0.0,3.1.0)</version>
 			<scope>test</scope>
