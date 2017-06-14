@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +18,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
+import com.bakerbeach.market.cart.api.model.CartRuleResult;
 import com.bakerbeach.market.cart.api.service.CartRuleService;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
 import com.bakerbeach.market.cart.dao.MongoCartDao;
+import com.bakerbeach.market.cart.model.DiscountCartItemImpl;
 import com.bakerbeach.market.cart.model.TotalImpl;
 import com.bakerbeach.market.cart.model.TotalImpl.LineImpl;
 import com.bakerbeach.market.commons.Message;
@@ -36,6 +39,7 @@ import com.bakerbeach.market.core.api.model.ShopContext;
 import com.bakerbeach.market.core.api.model.TaxCode;
 import com.bakerbeach.market.core.api.model.Total;
 import com.bakerbeach.market.core.api.model.Total.Line;
+import com.bakerbeach.market.customer.model.AnonymousCustomer;
 import com.bakerbeach.market.shipping.api.model.ShippingContext;
 import com.bakerbeach.market.shipping.api.model.ShippingInfo;
 import com.bakerbeach.market.shipping.api.service.ShippingService;
@@ -169,8 +173,28 @@ public class XCartServiceImpl implements CartService {
 
 	@Override
 	public final synchronized void calculate(ShopContext shopContext, Cart cart, Customer customer) {
-		Map<String, CartItem> synchronizedMap = Collections.synchronizedMap(cart.getItems());
+		CartRuleContext cartRuleContext = cartRuleService.getNewCartRuleContext();
+		if (customer != null && !(customer instanceof AnonymousCustomer)) {
+			cartRuleContext.setCustomerId(customer.getId());
+			cartRuleContext.setCustomerEmail(customer.getEmail());			
+		}
 
+		preCalculationHandler(cartRuleContext, shopContext, cart, customer);
+		basicCalculation(cartRuleContext, shopContext, cart, customer);
+		postCalculationHandler(cartRuleContext, shopContext, cart, customer);
+	}
+
+	private void postCalculationHandler(CartRuleContext cartRuleContext, ShopContext shopContext, Cart cart, Customer customer) {
+		// TODO Auto-generated method stub		
+	}
+
+	private void preCalculationHandler(CartRuleContext cartRuleContext, ShopContext shopContext, Cart cart, Customer customer) {
+		// TODO Auto-generated method stub
+	}
+	
+	private final void basicCalculation(CartRuleContext cartRuleContext, ShopContext shopContext, Cart cart, Customer customer) {
+		Map<String, CartItem> synchronizedMap = Collections.synchronizedMap(cart.getItems());
+		
 		// remove zero quantity and volatile items and clear line discounts ---
 		Collection<String> toBeRemoved = new ArrayList<String>();
 		synchronizedMap.forEach((k, i) -> {
@@ -185,6 +209,15 @@ public class XCartServiceImpl implements CartService {
 			i.setDiscount(BigDecimal.ZERO);
 		});
 
+		// check for rules that may change the items/lines ---
+		try {			
+			cartRuleContext.setCart(cart);
+			List<CartRuleResult> cartRuleResults = cartRuleService.lineChangeHandler(cartRuleContext);			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
 		// zeilen berechnen (alle produkte) ---
 		synchronizedMap.forEach((k, item) -> {
 			calculateItem(item, shopContext.getCountryOfDelivery(), customer.getTaxCode());
@@ -196,6 +229,14 @@ public class XCartServiceImpl implements CartService {
 		cart.setPayment(BigDecimal.ZERO);
 
 		// TODO: line-discount ---
+		try {			
+			List<CartRuleResult> cartRuleResults = cartRuleService.lineDiscountHandler(cartRuleContext);			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		
 		/*
 		 * List<Coupon> coupons = cart.getCoupons(); for (Coupon coupon :
 		 * coupons) { try { CouponResult couponResult =
@@ -274,7 +315,15 @@ public class XCartServiceImpl implements CartService {
 		// TODO: cart discounts ---
 		try {
 			
-			CartRuleContext cartRuleContext = cartRuleService.getNewCartRuleContext(shopContext, customer, cart);
+			List<CartRuleResult> cartRuleResults = cartRuleService.cartDiscountHandler(cartRuleContext);
+			if (CollectionUtils.isNotEmpty(cartRuleResults)) {
+				for (CartRuleResult result : cartRuleResults) {
+					if (result.getDiscounts().containsKey("total")) {
+						BigDecimal discount = result.getDiscounts().get("total");
+						List<CartItem> cartDiscountItems = getCartDiscountItems(cart, goodsAndServices, discount); cart.addAll(cartDiscountItems);
+					}
+				}
+			}
 			
 			
 		} catch (Exception e) {
@@ -437,8 +486,38 @@ public class XCartServiceImpl implements CartService {
 	public Cart getNewCart(ShopContext shopContext) throws CartServiceException {
 		return mongoCartDaos.get(shopContext.getShopCode()).getNewCart();
 	}
+	
+	protected List<CartItem> getCartDiscountItems(Cart cart, Total goodsAndServices, BigDecimal discount) {
+		BigDecimal maxDiscount = goodsAndServices.getGross();
+		BigDecimal discountRest = discount.min(maxDiscount);
 
-	private CartItem getShippingCartItem(ShopContext shopContext, Cart cart, ShippingInfo shippingInfo) {
+		List<CartItem> items = new ArrayList<CartItem>();
+		Collection<Line> lines = goodsAndServices.getLines().values();
+		for (Iterator<Line> i = lines.iterator(); i.hasNext();) {
+			Line line = (Line) i.next();
+
+			BigDecimal resourceGross;
+			if (i.hasNext()) {
+				BigDecimal q = line.getGross().divide(maxDiscount, 4, BigDecimal.ROUND_HALF_UP);
+				resourceGross = q.multiply(discountRest).setScale(2, BigDecimal.ROUND_HALF_UP);
+				discountRest = discountRest.add(resourceGross);
+			} else {
+				resourceGross = discountRest;
+			}
+
+			DiscountCartItemImpl item = new DiscountCartItemImpl();
+			item.setTaxCode(line.getTaxCode());
+			item.setTaxPercent(line.getTaxPercent());
+			item.setUnitPrice(resourceGross);
+			item.setTotalPrice(resourceGross);
+
+			items.add(item);
+		}
+
+		return items;
+	}
+
+	protected CartItem getShippingCartItem(ShopContext shopContext, Cart cart, ShippingInfo shippingInfo) {
 
 		// just testing ---
 

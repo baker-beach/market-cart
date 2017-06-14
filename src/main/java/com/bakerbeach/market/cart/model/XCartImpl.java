@@ -7,8 +7,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
@@ -19,13 +21,14 @@ import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.annotations.Version;
 
+import com.bakerbeach.market.cart.api.service.CartRulesAware;
 import com.bakerbeach.market.core.api.model.Cart;
 import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.Coupon;
 import com.bakerbeach.market.core.api.model.Total;
 
 @Entity(noClassnameStored = false)
-public class XCartImpl implements Cart {
+public class XCartImpl implements Cart, CartRulesAware {
 
 	@Id
 	protected ObjectId id;
@@ -40,8 +43,9 @@ public class XCartImpl implements Cart {
 	@Embedded
 	protected Map<String, CartItem> items = new LinkedHashMap<>();
 	@Transient
-	protected List<Coupon> coupons = new ArrayList<Coupon>(1);
-
+	protected Set<String> couponRules = new LinkedHashSet<>();
+	@Transient
+	protected Set<String> commonRules = new LinkedHashSet<>();
 	@Transient
 	protected Total total;
 	@Transient
@@ -54,7 +58,6 @@ public class XCartImpl implements Cart {
 	protected BigDecimal shipping;
 	@Transient
 	protected BigDecimal payment;
-
 	@Property("created_at")
 	protected Date createdAt;
 	@Property("created_by")
@@ -95,7 +98,8 @@ public class XCartImpl implements Cart {
 		shipping = null;
 		payment = null;
 		total = null;
-		coupons = new ArrayList<Coupon>(1);
+		couponRules = new LinkedHashSet<String>(1);
+		commonRules = new LinkedHashSet<String>(1);
 		items.clear();
 	}
 
@@ -236,9 +240,20 @@ public class XCartImpl implements Cart {
 		return items.isEmpty();
 	}
 
+	@Deprecated
 	@Override
 	public List<Coupon> getCoupons() {
-		return coupons;
+		return null;
+	}
+	
+	@Override
+	public Set<String> getCouponRules() {
+		return couponRules;
+	}
+	
+	@Override
+	public Set<String> getCommonRules() {
+		return commonRules;
 	}
 
 	@Override
