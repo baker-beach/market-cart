@@ -18,12 +18,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
+import com.bakerbeach.market.cart.api.model.CartRuleMessage;
 import com.bakerbeach.market.cart.api.model.CartRuleResult;
 import com.bakerbeach.market.cart.api.service.CartRuleService;
+import com.bakerbeach.market.cart.api.service.CartRulesAware;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
 import com.bakerbeach.market.cart.dao.MongoCartDao;
-import com.bakerbeach.market.cart.model.DiscountCartItemImpl;
 import com.bakerbeach.market.cart.model.TotalImpl;
 import com.bakerbeach.market.cart.model.TotalImpl.LineImpl;
 import com.bakerbeach.market.commons.Message;
@@ -235,51 +236,45 @@ public class XCartServiceImpl implements CartService {
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
+
+		// calculate goods (now including line discounts) ---
+		goods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT));
+		cart.setValueOfGoods(goods.getGross());
+	
+		// cart discount before shipping ---
+		if (cart instanceof CartRulesAware) {
+			try {
+				BigDecimal discount = BigDecimal.ZERO;
+				List<CartRuleResult> cartRuleResults = cartRuleService.cartDiscountHandler(cartRuleContext);
+				if (CollectionUtils.isNotEmpty(cartRuleResults)) {
+					for (CartRuleResult result : cartRuleResults) {
+						if (result.getDiscounts().containsKey("total")) {
+							discount = discount.add(result.getDiscounts().get("total"));
+						}
+						
+						CartRuleMessage message = result.getMessage();
+						((CartRulesAware) cart).getCartRuleMessages().put(message.getKey(), message);
+						
+					}
+					List<CartItem> discountItems = getCartDiscountItems(cart, goods, discount);
+					if (CollectionUtils.isNotEmpty(discountItems)) {
+						for (CartItem discountItem : discountItems) {
+							calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+							cart.set(discountItem);
+						}
+					}
+				}
+			} catch (Exception e) {
+				log.error(ExceptionUtils.getStackTrace(e));
+				// TODO: provide error message
+			}			
+		}
 		
 		
-		/*
-		 * List<Coupon> coupons = cart.getCoupons(); for (Coupon coupon :
-		 * coupons) { try { CouponResult couponResult =
-		 * coupon.apply(shopContext, customer, cart); if
-		 * (!couponResult.hasErrors()) { for (CartItem item :
-		 * cart.getCartItems()) { if
-		 * (couponResult.getDiscounts().containsKey(item.getId())) { BigDecimal
-		 * discount = couponResult.getDiscounts().get(item.getId());
-		 * item.setDiscount(discount);
-		 * 
-		 * // create one discount resource item for each line discount --- if
-		 * (!discountResourceItems.containsKey(item.getTaxCode())) {
-		 * ResourceCartItemImpl resourceCartItem = new ResourceCartItemImpl();
-		 * resourceCartItem.setGtin("DISCOUNT_".concat(item.getTaxCode().name())
-		 * ); resourceCartItem.setTaxCode(item.getTaxCode());
-		 * resourceCartItem.setTaxPercent(item.getTaxPercent());
-		 * 
-		 * discountResourceItems.put(item.getTaxCode(), resourceCartItem); }
-		 * 
-		 * CartItem resourceCartItem =
-		 * discountResourceItems.get(item.getTaxCode());
-		 * resourceCartItem.setUnitPrice(resourceCartItem.getUnitPrice().add(
-		 * item.getDiscount()));
-		 * resourceCartItem.setTotalPrice(resourceCartItem.getTotalPrice().add(
-		 * item.getDiscount())); } } } } catch (Exception e) { for (CartItem
-		 * item : cart.getCartItems()) { item.setDiscount(BigDecimal.ZERO); }
-		 * 
-		 * log.error(ExceptionUtils.getStackTrace(e)); } }
-		 */
-
-		// TODO: waren inkl. discount ---
-
+		// lieferkosten ---
 		Total shippingGoods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT));
-
 		cart.setValueOfShippingGoods(shippingGoods.getGross());
 
-		// shipmentService.setOptionalCartItems(cart, customer);
-
-		goods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT));
-
-		// TODO: set shipping cart item
-
-		// lieferkosten ---
 		if (!cart.getItems().isEmpty()) {
 			try {
 
@@ -305,6 +300,8 @@ public class XCartServiceImpl implements CartService {
 				log.error(ExceptionUtils.getStackTrace(e));
 			}
 		}
+		
+		// TODO: cart discount after shipping ---
 
 		// waren und services inkl. (line)discount (als basis zur berechnung der
 		// resource produkte) ---
@@ -312,59 +309,11 @@ public class XCartServiceImpl implements CartService {
 		Total goodsAndServices = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT,
 				CartItemQualifier.VPRODUCT, CartItemQualifier.SERVICE, CartItemQualifier.SHIPPING));
 
-		// TODO: cart discounts ---
-		try {
-			
-			List<CartRuleResult> cartRuleResults = cartRuleService.cartDiscountHandler(cartRuleContext);
-			if (CollectionUtils.isNotEmpty(cartRuleResults)) {
-				for (CartRuleResult result : cartRuleResults) {
-					if (result.getDiscounts().containsKey("total")) {
-						BigDecimal discount = result.getDiscounts().get("total");
-						List<CartItem> cartDiscountItems = getCartDiscountItems(cart, goodsAndServices, discount); cart.addAll(cartDiscountItems);
-					}
-				}
-			}
-			
-			
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-		
-		
-		
-		/*
-		List<Coupon> coupons = cart.getCoupons();
-		if (coupons != null) { 
-			for (Coupon coupon : coupons) { 
-				try { 
-					Map<String, Object> context = new HashMap<String, Object>(); 
-					context.put("cartService", this);
-					context.put("shopContext", shopContext); 
-					context.put("customer", customer); 
-					context.put("cart", cart); 
-					CouponResult couponResult = coupon.apply(context); 
-					// CouponResult couponResult = coupon.apply(shopContext, 
-					// customer, cart); 
-					if (!couponResult.hasErrors()) { 
-						if (couponResult.getDiscounts().containsKey("total")) { 
-							BigDecimal discount = couponResult.getDiscounts().get("total");
-							List<CartItem> cartDiscountItems = getCartDiscountItems(cart, goodsAndServices, discount); cart.addAll(cartDiscountItems); 
-						} 
-					} 
-				} catch (Exception e) { 
-					log.error(ExceptionUtils.getStackTrace(e)); 
-				} 
-			}
-		}
-		*/
-
-
 		// summe alle discounts ---
 		Total discount = calculateTotal(cart, Arrays.asList(CartItemQualifier.DISCOUNT));
 		cart.setDiscount(discount);
 
 		// summen ---
-		cart.setValueOfGoods(goods.getGross());
 		Total total = calculateTotal(cart,
 				Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT, CartItemQualifier.SERVICE,
 						CartItemQualifier.DISCOUNT, CartItemQualifier.RESOURCE, CartItemQualifier.SHIPPING));
@@ -505,11 +454,20 @@ public class XCartServiceImpl implements CartService {
 				resourceGross = discountRest;
 			}
 
-			DiscountCartItemImpl item = new DiscountCartItemImpl();
+//			DiscountCartItemImpl item = new DiscountCartItemImpl();
+//			item.setTaxCode(line.getTaxCode());
+//			item.setTaxPercent(line.getTaxPercent());
+//			item.setUnitPrice(resourceGross);
+//			item.setTotalPrice(resourceGross);
+			
+			CartItem item = cart.getNewItem("discount", BigDecimal.ONE);
+			item.setId("discount-" + line.getTaxCode().name().toLowerCase());
+			item.setQualifier(CartItemQualifier.DISCOUNT);
+			item.setIsVisible(true);
+			item.setIsVolatile(true);
+			item.setIsImmutable(true);
 			item.setTaxCode(line.getTaxCode());
-			item.setTaxPercent(line.getTaxPercent());
-			item.setUnitPrice(resourceGross);
-			item.setTotalPrice(resourceGross);
+			item.setUnitPrice("std", resourceGross);
 
 			items.add(item);
 		}

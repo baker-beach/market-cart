@@ -21,6 +21,7 @@ import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.annotations.Version;
 
+import com.bakerbeach.market.cart.api.model.CartRuleMessage;
 import com.bakerbeach.market.cart.api.service.CartRulesAware;
 import com.bakerbeach.market.core.api.model.Cart;
 import com.bakerbeach.market.core.api.model.CartItem;
@@ -43,10 +44,6 @@ public class XCartImpl implements Cart, CartRulesAware {
 	@Embedded
 	protected Map<String, CartItem> items = new LinkedHashMap<>();
 	@Transient
-	protected Set<String> couponRules = new LinkedHashSet<>();
-	@Transient
-	protected Set<String> commonRules = new LinkedHashSet<>();
-	@Transient
 	protected Total total;
 	@Transient
 	protected Total discount;
@@ -68,8 +65,14 @@ public class XCartImpl implements Cart, CartRulesAware {
 	protected String updatedBy;
 	@Property("workflow")
 	protected String workflow;
-
 	protected Map<String, Object> attributes = new HashMap<String, Object>();
+	
+	@Transient
+	protected Map<String, CartRuleMessage> cartRuleMessages = new HashMap<>();
+	@Transient
+	protected Set<String> couponRules = new LinkedHashSet<>();
+	@Transient
+	protected Set<String> commonRules = new LinkedHashSet<>();
 
 	protected String foo = "bar";
 
@@ -247,16 +250,6 @@ public class XCartImpl implements Cart, CartRulesAware {
 	}
 	
 	@Override
-	public Set<String> getCouponRules() {
-		return couponRules;
-	}
-	
-	@Override
-	public Set<String> getCommonRules() {
-		return commonRules;
-	}
-
-	@Override
 	public Total getTotal() {
 		return total;
 	}
@@ -391,6 +384,20 @@ public class XCartImpl implements Cart, CartRulesAware {
 		}
 		return false;
 	}
-
+	
+	@Override
+	public Set<String> getCouponRules() {
+		return couponRules;
+	}
+	
+	@Override
+	public Set<String> getCommonRules() {
+		return commonRules;
+	}
+	
+	@Override
+	public Map<String, CartRuleMessage> getCartRuleMessages() {
+		return cartRuleMessages;
+	}
 
 }

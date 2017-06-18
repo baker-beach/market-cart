@@ -5,11 +5,16 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bakerbeach.market.cart.api.model.CartRule;
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleResult;
 
 public class SimpleCartRuleImpl implements CartRule {
+	protected static final Logger log = LoggerFactory.getLogger(SimpleCartRuleImpl.class);
+
 	private String code;
 	private BigDecimal rate;
 	private BigDecimal shippingDiscountRate;
