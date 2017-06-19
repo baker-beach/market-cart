@@ -17,16 +17,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.bakerbeach.market.cart.api.model.CartRuleContext;
-import com.bakerbeach.market.cart.api.model.CartRuleMessage;
-import com.bakerbeach.market.cart.api.model.CartRuleResult;
+import com.bakerbeach.market.cart.api.model.RuleContext;
+import com.bakerbeach.market.cart.api.model.RuleResult;
+import com.bakerbeach.market.cart.api.model.RuleMessage;
 import com.bakerbeach.market.cart.api.service.CartRuleService;
-import com.bakerbeach.market.cart.api.service.CartRulesAware;
+import com.bakerbeach.market.cart.api.service.RuleAware;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
 import com.bakerbeach.market.cart.dao.MongoCartDao;
 import com.bakerbeach.market.cart.model.TotalImpl;
 import com.bakerbeach.market.cart.model.TotalImpl.LineImpl;
+import com.bakerbeach.market.cart.rules.SimpleCartRuleContextImpl;
 import com.bakerbeach.market.commons.Message;
 import com.bakerbeach.market.commons.MessageImpl;
 import com.bakerbeach.market.commons.Messages;
@@ -174,27 +175,32 @@ public class XCartServiceImpl implements CartService {
 
 	@Override
 	public final synchronized void calculate(ShopContext shopContext, Cart cart, Customer customer) {
-		CartRuleContext cartRuleContext = cartRuleService.getNewCartRuleContext();
+		RuleContext ruleContext = cartRuleService.getNewCartRuleContext();
 		if (customer != null && !(customer instanceof AnonymousCustomer)) {
-			cartRuleContext.setCustomerId(customer.getId());
-			cartRuleContext.setCustomerEmail(customer.getEmail());			
+			ruleContext.setCustomerId(customer.getId());
+			ruleContext.setCustomerEmail(customer.getEmail());			
 		}
 
-		preCalculationHandler(cartRuleContext, shopContext, cart, customer);
-		basicCalculation(cartRuleContext, shopContext, cart, customer);
-		postCalculationHandler(cartRuleContext, shopContext, cart, customer);
+		preCalculationHandler(ruleContext, shopContext, cart, customer);
+		basicCalculation(ruleContext, shopContext, cart, customer);
+		postCalculationHandler(ruleContext, shopContext, cart, customer);
 	}
 
-	private void postCalculationHandler(CartRuleContext cartRuleContext, ShopContext shopContext, Cart cart, Customer customer) {
-		// TODO Auto-generated method stub		
-	}
-
-	private void preCalculationHandler(CartRuleContext cartRuleContext, ShopContext shopContext, Cart cart, Customer customer) {
+	private void preCalculationHandler(RuleContext ruleContext, ShopContext shopContext, Cart cart, Customer customer) {
 		// TODO Auto-generated method stub
 	}
 	
-	private final void basicCalculation(CartRuleContext cartRuleContext, ShopContext shopContext, Cart cart, Customer customer) {
+	private void postCalculationHandler(RuleContext ruleContext, ShopContext shopContext, Cart cart, Customer customer) {
+		// TODO Auto-generated method stub
+	}
+
+	private final void basicCalculation(RuleContext ruleContext, ShopContext shopContext, Cart cart, Customer customer) {
 		Map<String, CartItem> synchronizedMap = Collections.synchronizedMap(cart.getItems());
+		
+		// clear rule messages ---
+		if (cart instanceof RuleAware) {
+			((RuleAware) cart).getRuleMessages().clear();
+		}
 		
 		// remove zero quantity and volatile items and clear line discounts ---
 		Collection<String> toBeRemoved = new ArrayList<String>();
@@ -212,8 +218,8 @@ public class XCartServiceImpl implements CartService {
 
 		// check for rules that may change the items/lines ---
 		try {			
-			cartRuleContext.setCart(cart);
-			List<CartRuleResult> cartRuleResults = cartRuleService.lineChangeHandler(cartRuleContext);			
+			ruleContext.setCart(cart);
+			List<RuleResult> cartRuleResults = cartRuleService.lineChangeHandler(ruleContext);			
 			
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -231,31 +237,35 @@ public class XCartServiceImpl implements CartService {
 
 		// TODO: line-discount ---
 		try {			
-			List<CartRuleResult> cartRuleResults = cartRuleService.lineDiscountHandler(cartRuleContext);			
+			List<RuleResult> cartRuleResults = cartRuleService.lineDiscountHandler(ruleContext);			
 			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
 
-		// calculate goods (now including line discounts) ---
+		// calculate (again) goods (now including line discounts) ---
 		goods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT));
 		cart.setValueOfGoods(goods.getGross());
 	
 		// cart discount before shipping ---
-		if (cart instanceof CartRulesAware) {
+		if (cart instanceof RuleAware) {
 			try {
+				RuleContext context = new SimpleCartRuleContextImpl();
+				context.setCart(cart);
+
 				BigDecimal discount = BigDecimal.ZERO;
-				List<CartRuleResult> cartRuleResults = cartRuleService.cartDiscountHandler(cartRuleContext);
+				List<RuleResult> cartRuleResults = cartRuleService.cartDiscountHandler(context);
+				
 				if (CollectionUtils.isNotEmpty(cartRuleResults)) {
-					for (CartRuleResult result : cartRuleResults) {
-						if (result.getDiscounts().containsKey("total")) {
-							discount = discount.add(result.getDiscounts().get("total"));
+					for (RuleResult result : cartRuleResults) {
+						if (result.getValues().containsKey("total")) {
+							discount = discount.add(result.getValues().get("total"));
 						}
 						
-						CartRuleMessage message = result.getMessage();
-						((CartRulesAware) cart).getCartRuleMessages().put(message.getKey(), message);
-						
+						RuleMessage message = result.getMessage();
+						((RuleAware) cart).getRuleMessages().add(message);						
 					}
+					
 					List<CartItem> discountItems = getCartDiscountItems(cart, goods, discount);
 					if (CollectionUtils.isNotEmpty(discountItems)) {
 						for (CartItem discountItem : discountItems) {
@@ -263,14 +273,48 @@ public class XCartServiceImpl implements CartService {
 							cart.set(discountItem);
 						}
 					}
+					
 				}
 			} catch (Exception e) {
 				log.error(ExceptionUtils.getStackTrace(e));
 				// TODO: provide error message
 			}			
 		}
-		
-		
+
+		// shipping ---
+		Total shippingGoods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT));
+		cart.setValueOfShippingGoods(shippingGoods.getGross());
+		BigDecimal sum = BigDecimal.ZERO;
+		if (cart instanceof RuleAware) {
+			try {
+				ruleContext.setCart(cart);
+				ruleContext.setCustomerId(customer.getId());
+				ruleContext.setShippingAddress(shopContext.getShippingAddress());
+				
+				List<RuleResult> ruleResults = cartRuleService.applyShippingRules(ruleContext);
+				if (CollectionUtils.isNotEmpty(ruleResults)) {
+					for (RuleResult result : ruleResults) {
+						sum = sum.add(result.getValues().get("total"));
+						
+						RuleMessage message = result.getMessage();
+						if (message != null) {
+							((RuleAware) cart).getRuleMessages().add(message);
+						}
+					}
+				}
+				
+				CartItem shippingItem = getShippingItem(cart, sum);
+				if (shippingItem != null) {
+					calculateItem(shippingItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+					cart.set(shippingItem);
+				}
+			} catch (Exception e) {
+				log.error(ExceptionUtils.getStackTrace(e));
+				// TODO: provide error message
+			}			
+		}
+
+/*		
 		// lieferkosten ---
 		Total shippingGoods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT));
 		cart.setValueOfShippingGoods(shippingGoods.getGross());
@@ -300,8 +344,13 @@ public class XCartServiceImpl implements CartService {
 				log.error(ExceptionUtils.getStackTrace(e));
 			}
 		}
-		
+*/
+
 		// TODO: cart discount after shipping ---
+		
+		// shipping gross price ---
+		Total shipping = calculateTotal(cart, Arrays.asList(CartItemQualifier.SHIPPING));
+		cart.setShipping(shipping.getGross());
 
 		// waren und services inkl. (line)discount (als basis zur berechnung der
 		// resource produkte) ---
@@ -384,20 +433,6 @@ public class XCartServiceImpl implements CartService {
 		}
 	}
 
-	// @Override
-	// public void setStatus(Customer customer, Cart cart, String status) throws
-	// CartServiceException {
-	// cart.setStatus(status);
-	// cart.setUpdatedBy(customer.getId());
-	// }
-
-	// @Override
-	// @Deprecated
-	// public Cart loadCart(String shopCode, String id) throws
-	// CartServiceException {
-	// return mongoCartDaos.get(shopCode).loadCart(id);
-	// }
-
 	@Override
 	public Cart loadActiveCart(ShopContext context, Customer customer) throws CartServiceException {
 		List<Cart> carts = mongoCartDaos.get(context.getShopCode()).loadCart(customer,
@@ -436,12 +471,12 @@ public class XCartServiceImpl implements CartService {
 		return mongoCartDaos.get(shopContext.getShopCode()).getNewCart();
 	}
 	
-	protected List<CartItem> getCartDiscountItems(Cart cart, Total goodsAndServices, BigDecimal discount) {
-		BigDecimal maxDiscount = goodsAndServices.getGross();
+	protected List<CartItem> getCartDiscountItems(Cart cart, Total total, BigDecimal discount) {
+		BigDecimal maxDiscount = total.getGross();
 		BigDecimal discountRest = discount.min(maxDiscount);
 
 		List<CartItem> items = new ArrayList<CartItem>();
-		Collection<Line> lines = goodsAndServices.getLines().values();
+		Collection<Line> lines = total.getLines().values();
 		for (Iterator<Line> i = lines.iterator(); i.hasNext();) {
 			Line line = (Line) i.next();
 
@@ -454,12 +489,6 @@ public class XCartServiceImpl implements CartService {
 				resourceGross = discountRest;
 			}
 
-//			DiscountCartItemImpl item = new DiscountCartItemImpl();
-//			item.setTaxCode(line.getTaxCode());
-//			item.setTaxPercent(line.getTaxPercent());
-//			item.setUnitPrice(resourceGross);
-//			item.setTotalPrice(resourceGross);
-			
 			CartItem item = cart.getNewItem("discount", BigDecimal.ONE);
 			item.setId("discount-" + line.getTaxCode().name().toLowerCase());
 			item.setQualifier(CartItemQualifier.DISCOUNT);
@@ -475,6 +504,20 @@ public class XCartServiceImpl implements CartService {
 		return items;
 	}
 
+	protected CartItem getShippingItem(Cart cart, BigDecimal value) {
+		CartItem item = cart.getNewItem("shipping", BigDecimal.ONE);
+		item.setId("shipping");
+		item.setQualifier(CartItemQualifier.SHIPPING);
+		item.setIsVisible(true);
+		item.setIsVolatile(true);
+		item.setIsImmutable(true);
+		// TODO: tax code from 
+		item.setTaxCode(TaxCode.NORMAL);
+		item.setUnitPrice("std", value);
+		
+		return item;
+	}
+	
 	protected CartItem getShippingCartItem(ShopContext shopContext, Cart cart, ShippingInfo shippingInfo) {
 
 		// just testing ---

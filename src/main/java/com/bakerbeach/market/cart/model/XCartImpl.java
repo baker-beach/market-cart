@@ -21,15 +21,15 @@ import org.mongodb.morphia.annotations.Property;
 import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.annotations.Version;
 
-import com.bakerbeach.market.cart.api.model.CartRuleMessage;
-import com.bakerbeach.market.cart.api.service.CartRulesAware;
+import com.bakerbeach.market.cart.api.model.RuleMessage;
+import com.bakerbeach.market.cart.api.service.RuleAware;
 import com.bakerbeach.market.core.api.model.Cart;
 import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.Coupon;
 import com.bakerbeach.market.core.api.model.Total;
 
 @Entity(noClassnameStored = false)
-public class XCartImpl implements Cart, CartRulesAware {
+public class XCartImpl implements Cart, RuleAware {
 
 	@Id
 	protected ObjectId id;
@@ -68,7 +68,7 @@ public class XCartImpl implements Cart, CartRulesAware {
 	protected Map<String, Object> attributes = new HashMap<String, Object>();
 	
 	@Transient
-	protected Map<String, CartRuleMessage> cartRuleMessages = new HashMap<>();
+	protected List<RuleMessage> ruleMessages = new ArrayList<>();
 	@Transient
 	protected Set<String> couponRules = new LinkedHashSet<>();
 	@Transient
@@ -386,6 +386,11 @@ public class XCartImpl implements Cart, CartRulesAware {
 	}
 	
 	@Override
+	public List<RuleMessage> getRuleMessages() {
+		return ruleMessages;
+	}
+	
+	@Override
 	public Set<String> getCouponRules() {
 		return couponRules;
 	}
@@ -395,9 +400,5 @@ public class XCartImpl implements Cart, CartRulesAware {
 		return commonRules;
 	}
 	
-	@Override
-	public Map<String, CartRuleMessage> getCartRuleMessages() {
-		return cartRuleMessages;
-	}
 
 }

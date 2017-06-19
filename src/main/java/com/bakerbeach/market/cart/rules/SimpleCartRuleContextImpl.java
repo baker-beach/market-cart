@@ -1,14 +1,16 @@
 package com.bakerbeach.market.cart.rules;
 
-import com.bakerbeach.market.cart.api.model.CartRuleContext;
-import com.bakerbeach.market.cart.api.service.CartRulesAware;
+import com.bakerbeach.market.cart.api.model.RuleContext;
+import com.bakerbeach.market.cart.api.service.RuleAware;
+import com.bakerbeach.market.core.api.model.Address;
 import com.bakerbeach.market.core.api.model.Cart;
 
-public class SimpleCartRuleContextImpl implements CartRuleContext {
+public class SimpleCartRuleContextImpl implements RuleContext {
 
 	private String shopCode;
 	private String customerId;
 	private String customerEmail;
+	private Address shippingAddress;
 	private Cart cart;
 
 	@Override
@@ -52,9 +54,19 @@ public class SimpleCartRuleContextImpl implements CartRuleContext {
 	}
 	
 	@Override
-	public CartRulesAware getCartRuleAware() {
-		if (cart instanceof CartRulesAware) {
-			return (CartRulesAware) cart;
+	public Address getShippingAddress() {
+		return shippingAddress;
+	}
+	
+	@Override
+	public void setShippingAddress(Address shippingAddress) {
+		this.shippingAddress = shippingAddress;
+	}
+	
+	@Override
+	public RuleAware getCartRuleAware() {
+		if (cart instanceof RuleAware) {
+			return (RuleAware) cart;
 		} else {
 			return null;			
 		}

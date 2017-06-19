@@ -4,31 +4,31 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.bakerbeach.market.cart.api.model.CartRuleMessage;
-import com.bakerbeach.market.cart.api.model.CartRuleResult;
+import com.bakerbeach.market.cart.api.model.RuleMessage;
+import com.bakerbeach.market.cart.api.model.RuleResult;
 
-public class SimpleCartRuleResult implements CartRuleResult {
-	private Map<String, BigDecimal> discounts = new HashMap<String, BigDecimal>();
-	private CartRuleMessage message;
+public class SimpleCartRuleResult implements RuleResult {
+	private Map<String, BigDecimal> values = new HashMap<String, BigDecimal>();
+	private RuleMessage message;
 
 	@Override
-	public Map<String, BigDecimal> getDiscounts() {
-		return discounts;
+	public Map<String, BigDecimal> getValues() {
+		return values;
 	}
 
 	@Override
-	public CartRuleMessage getMessage() {
+	public RuleMessage getMessage() {
 		return message;
 	}
 
 	@Override
-	public void setMessage(CartRuleMessage message) {
+	public void setMessage(RuleMessage message) {
 		this.message = message;
 	}
 
 	@Override
 	public boolean hasError() {
-		return message.getType().equals(CartRuleMessage.Type.ERROR);
+		return message.getType().equals(RuleMessage.Type.ERROR);
 	}
 
 }

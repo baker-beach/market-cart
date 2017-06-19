@@ -11,10 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bakerbeach.market.cart.api.model.CartRule;
-import com.bakerbeach.market.cart.api.model.CartRuleContext;
-import com.bakerbeach.market.cart.api.model.CartRuleResult;
+import com.bakerbeach.market.cart.api.model.RuleContext;
+import com.bakerbeach.market.cart.api.model.RuleResult;
 import com.bakerbeach.market.cart.api.service.CartRuleService;
-import com.bakerbeach.market.cart.api.service.CartRulesAware;
+import com.bakerbeach.market.cart.api.service.RuleAware;
 import com.bakerbeach.market.core.api.model.Cart;
 
 public class SimpleCartRuleServiceImpl implements CartRuleService {
@@ -22,31 +22,32 @@ public class SimpleCartRuleServiceImpl implements CartRuleService {
 	
 	private Map<String, CartRule> couponRules = new LinkedHashMap<>();
 	private Map<String, CartRule> commonRules = new LinkedHashMap<>();
+	private Map<String, CartRule> shippingRules = new LinkedHashMap<>();
 	
 	@Override
-	public CartRuleContext getNewCartRuleContext() {
+	public RuleContext getNewCartRuleContext() {
 		return new SimpleCartRuleContextImpl();
 	}
 
 	@Override
-	public List<CartRuleResult> lineChangeHandler(CartRuleContext context) {
+	public List<RuleResult> lineChangeHandler(RuleContext context) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<CartRuleResult> lineDiscountHandler(CartRuleContext context) {
+	public List<RuleResult> lineDiscountHandler(RuleContext context) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<CartRuleResult> cartDiscountHandler(CartRuleContext context) {
-		List<CartRuleResult> results = new ArrayList<>();
+	public List<RuleResult> cartDiscountHandler(RuleContext context) {
+		List<RuleResult> results = new ArrayList<>();
 		
 		Cart cart = context.getCart();
 		
-		if (cart instanceof CartRulesAware) {
+		if (cart instanceof RuleAware) {
 			Set<String> activeCommonRules = context.getCartRuleAware().getCommonRules();
 			Set<String> activeCouponRules = context.getCartRuleAware().getCouponRules();
 			
@@ -59,16 +60,30 @@ public class SimpleCartRuleServiceImpl implements CartRuleService {
 		
 			// apply common rules ---
 			for (String key : activeCommonRules) {
-				CartRuleResult result = commonRules.get(key).apply(context);
+				RuleResult result = commonRules.get(key).apply(context);
 				results.add(result);
 			}
 			
 			// apply coupon rules ----
 			for (String key : activeCouponRules) {
-				CartRuleResult result = couponRules.get(key).apply(context);
+				RuleResult result = couponRules.get(key).apply(context);
 				results.add(result);
 			}
 		
+		}
+
+		return results;
+	}
+	
+	@Override
+	public List<RuleResult> applyShippingRules(RuleContext context) {
+		List<RuleResult> results = new ArrayList<>();
+		
+		if (context.getCart() instanceof RuleAware) {
+			for (Entry<String, CartRule> e : shippingRules.entrySet()) {
+				RuleResult result = e.getValue().apply(context);
+				results.add(result);
+			}
 		}
 
 		return results;
@@ -82,4 +97,8 @@ public class SimpleCartRuleServiceImpl implements CartRuleService {
 		this.couponRules = couponRules;
 	}
 
+	public void setShippingRules(Map<String, CartRule> shippingRules) {
+		this.shippingRules = shippingRules;
+	}
+	
 }
