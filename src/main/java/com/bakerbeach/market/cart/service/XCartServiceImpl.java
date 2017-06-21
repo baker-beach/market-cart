@@ -18,12 +18,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.bakerbeach.market.cart.api.model.RuleContext;
-import com.bakerbeach.market.cart.api.model.RuleResult;
 import com.bakerbeach.market.cart.api.model.RuleMessage;
+import com.bakerbeach.market.cart.api.model.RuleResult;
 import com.bakerbeach.market.cart.api.service.CartRuleService;
-import com.bakerbeach.market.cart.api.service.RuleAware;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
+import com.bakerbeach.market.cart.api.service.RuleAware;
 import com.bakerbeach.market.cart.dao.MongoCartDao;
 import com.bakerbeach.market.cart.model.TotalImpl;
 import com.bakerbeach.market.cart.model.TotalImpl.LineImpl;
@@ -42,7 +42,6 @@ import com.bakerbeach.market.core.api.model.TaxCode;
 import com.bakerbeach.market.core.api.model.Total;
 import com.bakerbeach.market.core.api.model.Total.Line;
 import com.bakerbeach.market.customer.model.AnonymousCustomer;
-import com.bakerbeach.market.shipping.api.model.ShippingContext;
 import com.bakerbeach.market.shipping.api.model.ShippingInfo;
 import com.bakerbeach.market.shipping.api.service.ShippingService;
 import com.bakerbeach.market.tax.api.service.TaxService;
@@ -80,7 +79,9 @@ public class XCartServiceImpl implements CartService {
 			log.error(ExceptionUtils.getStackTrace(e));
 		}
 
-		return getNewInstance(shopContext, customer);
+		Cart cart = getNewInstance(shopContext, customer);
+		calculate(shopContext, cart, customer);
+		return cart;
 	}
 
 	@Override
@@ -294,7 +295,9 @@ public class XCartServiceImpl implements CartService {
 				List<RuleResult> ruleResults = cartRuleService.applyShippingRules(ruleContext);
 				if (CollectionUtils.isNotEmpty(ruleResults)) {
 					for (RuleResult result : ruleResults) {
-						sum = sum.add(result.getValues().get("total"));
+						if (result.getValues().get("total") != null) {
+							sum = sum.add(result.getValues().get("total"));							
+						}
 						
 						RuleMessage message = result.getMessage();
 						if (message != null) {
@@ -313,38 +316,6 @@ public class XCartServiceImpl implements CartService {
 				// TODO: provide error message
 			}			
 		}
-
-/*		
-		// lieferkosten ---
-		Total shippingGoods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT));
-		cart.setValueOfShippingGoods(shippingGoods.getGross());
-
-		if (!cart.getItems().isEmpty()) {
-			try {
-
-				ShippingContext shippingContext = (ShippingContext) shopContext.getSessionData()
-						.get(ShippingContext.CONTEXT_KEY);
-				if (shippingContext == null) {
-					shippingContext = shippingService.createShippingContext(shopContext, customer, cart);
-					shopContext.getSessionData().put(ShippingContext.CONTEXT_KEY, shippingContext);
-				}
-
-				if (!shippingService.checkShippingContext(shopContext, customer, cart, shippingContext)) {
-					ShippingInfo shippingInfo = shippingService.apply(shippingContext);
-
-					CartItem cartItem = getShippingCartItem(shopContext, cart, shippingInfo);
-					if (cartItem != null) {
-						calculateItem(cartItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
-						cart.set(cartItem);
-					} else {
-						cart.remove("shipping");
-					}
-				}
-			} catch (Exception e) {
-				log.error(ExceptionUtils.getStackTrace(e));
-			}
-		}
-*/
 
 		// TODO: cart discount after shipping ---
 		
@@ -505,17 +476,21 @@ public class XCartServiceImpl implements CartService {
 	}
 
 	protected CartItem getShippingItem(Cart cart, BigDecimal value) {
-		CartItem item = cart.getNewItem("shipping", BigDecimal.ONE);
-		item.setId("shipping");
-		item.setQualifier(CartItemQualifier.SHIPPING);
-		item.setIsVisible(true);
-		item.setIsVolatile(true);
-		item.setIsImmutable(true);
-		// TODO: tax code from 
-		item.setTaxCode(TaxCode.NORMAL);
-		item.setUnitPrice("std", value);
-		
-		return item;
+		if (value != null && value.compareTo(BigDecimal.ZERO) == 1) {
+			CartItem item = cart.getNewItem("shipping", BigDecimal.ONE);
+			item.setId("shipping");
+			item.setQualifier(CartItemQualifier.SHIPPING);
+			item.setIsVisible(true);
+			item.setIsVolatile(true);
+			item.setIsImmutable(true);
+			// TODO: tax code from 
+			item.setTaxCode(TaxCode.NORMAL);
+			item.setUnitPrice("std", value);
+			
+			return item;			
+		} else {
+			return null;
+		}
 	}
 	
 	protected CartItem getShippingCartItem(ShopContext shopContext, Cart cart, ShippingInfo shippingInfo) {
