@@ -40,7 +40,9 @@ public abstract class AbstractCartItem implements CartItem {
 	@Deprecated
 	protected Map<String, BigDecimal> unitPrices = new HashMap<String, BigDecimal>();
 	protected Map<String, Object> attributes = new HashMap<String, Object>();
-
+	protected BigDecimal minQty;
+	protected BigDecimal maxQty;
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -353,6 +355,26 @@ public abstract class AbstractCartItem implements CartItem {
 	@Override
 	public BigDecimal getTotalPrice(String key) {
 		throw new RuntimeException("not implemented!");
+	}
+	
+	@Override
+	public BigDecimal getMinQty() {
+		return minQty;
+	}
+	
+	@Override
+	public void setMinQty(BigDecimal minQty) {
+		this.minQty = minQty;
+	}
+	
+	@Override
+	public BigDecimal getMaxQty() {
+		return maxQty;
+	}
+	
+	@Override
+	public void setMaxQty(BigDecimal maxQty) {
+		this.maxQty = maxQty;
 	}
 
 }

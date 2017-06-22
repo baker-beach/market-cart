@@ -212,6 +212,15 @@ public class XCartServiceImpl implements CartService {
 		});
 		synchronizedMap.keySet().removeAll(toBeRemoved);
 
+		// check min and max quantity ---
+		synchronizedMap.forEach((k, i) -> {
+			if (i.getQuantity().compareTo(i.getMaxQty()) > -1) {
+				i.setQuantity(i.getMaxQty());
+			} else if (i.getQuantity().compareTo(i.getMinQty()) == -1) {
+				i.setQuantity(i.getMinQty());
+			}
+		});
+
 		// reset line discount ---
 		synchronizedMap.forEach((k, i) -> {
 			i.setDiscount(BigDecimal.ZERO);

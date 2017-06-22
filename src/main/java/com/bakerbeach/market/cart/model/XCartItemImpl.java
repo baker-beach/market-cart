@@ -35,6 +35,8 @@ public class XCartItemImpl implements CartItem {
 	protected Map<String, BigDecimal> unitPrices = new HashMap<>();
 	@Transient
 	protected Map<String, BigDecimal> totalPrices = new HashMap<>();
+	protected BigDecimal minQty;
+	protected BigDecimal maxQty;
 
 	@Override
 	public Map<String, Object> getAttributes() {
@@ -403,6 +405,26 @@ public class XCartItemImpl implements CartItem {
 	@Override
 	public Map<String, CartItemComponent> getComponents() {
 		throw new RuntimeException("not supported");
+	}
+	
+	@Override
+	public BigDecimal getMinQty() {
+		return minQty;
+	}
+	
+	@Override
+	public void setMinQty(BigDecimal minQty) {
+		this.minQty = minQty;
+	}
+	
+	@Override
+	public BigDecimal getMaxQty() {
+		return maxQty;
+	}
+	
+	@Override
+	public void setMaxQty(BigDecimal maxQty) {
+		this.maxQty = maxQty;
 	}
 
 	public static class OptionImpl implements Option {
