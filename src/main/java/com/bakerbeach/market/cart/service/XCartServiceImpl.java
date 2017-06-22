@@ -214,10 +214,12 @@ public class XCartServiceImpl implements CartService {
 
 		// check min and max quantity ---
 		synchronizedMap.forEach((k, i) -> {
-			if (i.getQuantity().compareTo(i.getMaxQty()) > -1) {
-				i.setQuantity(i.getMaxQty());
-			} else if (i.getQuantity().compareTo(i.getMinQty()) == -1) {
-				i.setQuantity(i.getMinQty());
+			if (i.getMinQty() != null && i.getMaxQty() != null) {
+				if (i.getQuantity().compareTo(i.getMaxQty()) > -1) {
+					i.setQuantity(i.getMaxQty());
+				} else if (i.getQuantity().compareTo(i.getMinQty()) == -1) {
+					i.setQuantity(i.getMinQty());
+				}				
 			}
 		});
 
