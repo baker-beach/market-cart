@@ -552,8 +552,8 @@ public class XCartServiceImpl implements CartService {
 
 	@Override
 	public void setStatus(Customer customer, Cart cart, String status) throws CartServiceException {
-		// TODO Auto-generated method stub
-		throw new RuntimeException("not implemented");		
+		cart.setStatus(status);
+		saveCart(customer, cart);
 	}
 	
 }
