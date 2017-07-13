@@ -278,7 +278,7 @@ public class XCartServiceImpl implements CartService {
 						((RuleAware) cart).getRuleMessages().add(message);						
 					}
 					
-					List<CartItem> discountItems = getCartDiscountItems(cart, goods, discount);
+					List<CartItem> discountItems = getCartDiscountItems(cart, goods, discount, shopContext);
 					if (CollectionUtils.isNotEmpty(discountItems)) {
 						for (CartItem discountItem : discountItems) {
 							calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
@@ -317,7 +317,7 @@ public class XCartServiceImpl implements CartService {
 					}
 				}
 				
-				CartItem shippingItem = getShippingItem(cart, sum);
+				CartItem shippingItem = getShippingItem(cart, sum, shopContext);
 				if (shippingItem != null) {
 					calculateItem(shippingItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
 					cart.set(shippingItem);
@@ -453,7 +453,7 @@ public class XCartServiceImpl implements CartService {
 		return mongoCartDaos.get(shopContext.getShopCode()).getNewCart();
 	}
 	
-	protected List<CartItem> getCartDiscountItems(Cart cart, Total total, BigDecimal discount) {
+	protected List<CartItem> getCartDiscountItems(Cart cart, Total total, BigDecimal discount, ShopContext shopContext) {
 		BigDecimal maxDiscount = total.getGross();
 		BigDecimal discountRest = discount.min(maxDiscount);
 
@@ -479,6 +479,13 @@ public class XCartServiceImpl implements CartService {
 			item.setIsImmutable(true);
 			item.setTaxCode(line.getTaxCode());
 			item.setUnitPrice("std", resourceGross);
+			
+			item.getTitle().put("title1", translationService.getMessage("product.cart.title1", "text",
+					"discount", null, "product.cart.title1", shopContext.getCurrentLocale()));
+			item.getTitle().put("title2", translationService.getMessage("product.cart.title2", "text",
+					"discount", null, "product.cart.title2", shopContext.getCurrentLocale()));
+			item.getTitle().put("title3", translationService.getMessage("product.cart.title3", "text",
+					"discount", null, "product.cart.title3", shopContext.getCurrentLocale()));
 
 			items.add(item);
 		}
@@ -486,7 +493,7 @@ public class XCartServiceImpl implements CartService {
 		return items;
 	}
 
-	protected CartItem getShippingItem(Cart cart, BigDecimal value) {
+	protected CartItem getShippingItem(Cart cart, BigDecimal value, ShopContext shopContext) {
 		if (value != null && value.compareTo(BigDecimal.ZERO) == 1) {
 			CartItem item = cart.getNewItem("shipping", BigDecimal.ONE);
 			item.setId("shipping");
@@ -498,47 +505,19 @@ public class XCartServiceImpl implements CartService {
 			item.setTaxCode(TaxCode.NORMAL);
 			item.setUnitPrice("std", value);
 			
+			item.getTitle().put("title1", translationService.getMessage("product.cart.title1", "text",
+					"shipping", null, "product.cart.title1", shopContext.getCurrentLocale()));
+			item.getTitle().put("title2", translationService.getMessage("product.cart.title2", "text",
+					"shipping", null, "product.cart.title2", shopContext.getCurrentLocale()));
+			item.getTitle().put("title3", translationService.getMessage("product.cart.title3", "text",
+					"shipping", null, "product.cart.title3", shopContext.getCurrentLocale()));
+			
 			return item;			
 		} else {
 			return null;
 		}
 	}
 	
-	protected CartItem getShippingCartItem(ShopContext shopContext, Cart cart, ShippingInfo shippingInfo) {
-
-		// just testing ---
-
-		if (BigDecimal.ZERO.compareTo(shippingInfo.getCharges()) == -1) {
-			try {
-				CartItem cartItem = cart.getNewItem("shipping", BigDecimal.ONE);
-				cartItem.setId("shipping");
-				cartItem.setQualifier(CartItemQualifier.SHIPPING);
-				cartItem.setIsVisible(true);
-				cartItem.setIsVolatile(false);
-				cartItem.setIsImmutable(true);
-
-				cartItem.setTaxCode(TaxCode.NORMAL);
-				cartItem.setUnitPrice("std", shippingInfo.getCharges());
-
-				cartItem.getTitle().put("title1", translationService.getMessage("product.cart.title1", "text",
-						"shipping", null, "product.cart.title1", shopContext.getCurrentLocale()));
-				cartItem.getTitle().put("title2", translationService.getMessage("product.cart.title2", "text",
-						"shipping", null, "product.cart.title2", shopContext.getCurrentLocale()));
-				cartItem.getTitle().put("title3", translationService.getMessage("product.cart.title3", "text",
-						"shipping", null, "product.cart.title3", shopContext.getCurrentLocale()));
-
-				return cartItem;
-			} catch (Exception e) {
-				log.error(ExceptionUtils.getStackTrace(e));
-			}
-
-			// return new ShippingCartItem(shippingInfo.getCharges(),
-			// shippingInfo.getTaxCode());
-		}
-
-		return null;
-	}
-
 	public void setMongoCartDaos(Map<String, MongoCartDao> mongoCartDaos) {
 		this.mongoCartDaos = mongoCartDaos;
 	}
