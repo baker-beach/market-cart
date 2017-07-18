@@ -7,6 +7,7 @@ import java.util.Map;
 import org.mongodb.morphia.annotations.Transient;
 
 import com.bakerbeach.market.core.api.model.CartItem;
+import com.bakerbeach.market.core.api.model.ProductType;
 import com.bakerbeach.market.core.api.model.TaxCode;
 
 public abstract class AbstractCartItem implements CartItem {
@@ -43,6 +44,16 @@ public abstract class AbstractCartItem implements CartItem {
 	protected BigDecimal minQty;
 	protected BigDecimal maxQty;
 	
+	protected ProductType type = ProductType.SINGLE;
+	
+	public ProductType getType() {
+		return type;
+	}
+
+	public void setType(ProductType type) {
+		this.type = type;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
