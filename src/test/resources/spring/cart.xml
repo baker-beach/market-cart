@@ -7,7 +7,61 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
+
+	<bean id="cartRuleStore" class="com.bakerbeach.market.cart.rules.SimpleCartRuleStore">
+		<property name="ruleStore">
+			<bean id="ruleStore" class="com.bakerbeach.market.cart.rules.SimpleRuleStore" />
+		</property>
+		
+		<property name="rules">
+			<list value-type="com.bakerbeach.market.cart.api.model.CartRule">
+				<bean class="com.bakerbeach.market.cart.rules.PumpkinFreeShippingRuleImpl">
+					<property name="intention" value="DISCOUNT_ON_SHIPPING" />
+					<property name="id" value="freeShipping" />
+<!-- 					<property name="codesStr" value="fs0001,fs0002,fs003" /> -->
+					<property name="maxIndividualUse" value="2" />
+					<property name="start">
+						<bean factory-bean="dateFormat" factory-method="parse">
+							<constructor-arg value="01.07.2017 00:00" />
+						</bean>
+					</property>
+					<property name="end">
+						<bean factory-bean="dateFormat" factory-method="parse">
+							<constructor-arg value="01.10.2017 00:00" />
+						</bean>
+					</property>
+				</bean>
+
+				<bean class="com.bakerbeach.market.cart.rules.PumpkinShippingRuleImpl">
+					<property name="intention" value="SHIPPING" />
+					<property name="id" value="shipping" />
+					<property name="limit" value="39.00" />
+				</bean>
+				
+				<bean class="com.bakerbeach.market.cart.rules.DiscountOnGoodsRuleImpl">
+					<property name="id" value="goods" />
+					<property name="intention" value="DISCOUNT_ON_GOODS" />
+				</bean>
+				
+				<bean class="com.bakerbeach.market.cart.rules.DiscountOnGoodsAndServicesRuleImpl">
+					<property name="id" value="goodsAndServices" />
+					<property name="intention" value="DISCOUNT_ON_GOODS_AND_SERVICES" />
+				</bean>
+				
+				<bean class="com.bakerbeach.market.cart.rules.AddItemRuleImpl">
+					<property name="id" value="addBox1" />
+					<property name="intention" value="LINE_CHANGES" />
+				</bean>
+				
+			</list>
+		</property>		
+	</bean>
+
+
+
+	<!--
 	<bean id="cartService" class="com.bakerbeach.market.cart.service.CartServiceImpl" />
+	-->
 	
 	<bean id="xCartService" class="com.bakerbeach.market.cart.service.XCartServiceImpl">
 		<property name="mongoCartDaos">
@@ -41,6 +95,10 @@
 		<property name="mongoClient" ref="mongoClient" />
 		<property name="dbName" value="${mongo.shop.dbName}" />
 		<property name="packages" value="com.bakerbeach.market.xcatalog.model,com.bakerbeach.market.cart.model" />
+	</bean>
+	
+	<bean id="dateFormat" class="java.text.SimpleDateFormat">
+		<constructor-arg value="dd.MM.yyyy HH:mm" />
 	</bean>
 	
 </beans>

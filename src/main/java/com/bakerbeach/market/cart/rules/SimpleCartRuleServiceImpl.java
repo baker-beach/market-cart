@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bakerbeach.market.cart.api.model.CartRule;
-import com.bakerbeach.market.cart.api.model.RuleContext;
+import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.RuleResult;
 import com.bakerbeach.market.cart.api.service.CartRuleService;
 import com.bakerbeach.market.cart.api.service.RuleAware;
@@ -25,24 +25,24 @@ public class SimpleCartRuleServiceImpl implements CartRuleService {
 	private Map<String, CartRule> shippingRules = new LinkedHashMap<>();
 	
 	@Override
-	public RuleContext getNewCartRuleContext() {
+	public CartRuleContext getNewCartRuleContext() {
 		return new SimpleCartRuleContextImpl();
 	}
 
 	@Override
-	public List<RuleResult> lineChangeHandler(RuleContext context) {
+	public List<RuleResult> lineChangeHandler(CartRuleContext context) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<RuleResult> lineDiscountHandler(RuleContext context) {
+	public List<RuleResult> lineDiscountHandler(CartRuleContext context) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<RuleResult> cartDiscountHandler(RuleContext context) {
+	public List<RuleResult> cartDiscountHandler(CartRuleContext context) {
 		List<RuleResult> results = new ArrayList<>();
 		
 		Cart cart = context.getCart();
@@ -76,7 +76,7 @@ public class SimpleCartRuleServiceImpl implements CartRuleService {
 	}
 	
 	@Override
-	public List<RuleResult> applyShippingRules(RuleContext context) {
+	public List<RuleResult> applyShippingRules(CartRuleContext context) {
 		List<RuleResult> results = new ArrayList<>();
 		
 		if (context.getCart() instanceof RuleAware) {

@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bakerbeach.market.cart.api.model.CartRule;
-import com.bakerbeach.market.cart.api.model.RuleContext;
+import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.RuleResult;
 
 public class SimpleCartRuleImpl implements CartRule {
@@ -40,7 +40,7 @@ public class SimpleCartRuleImpl implements CartRule {
 	}
 
 	@Override
-	public RuleResult apply(RuleContext context) {
+	public RuleResult apply(CartRuleContext context) {
 		// TODO Auto-generated method stub
 		return null;
 	}
