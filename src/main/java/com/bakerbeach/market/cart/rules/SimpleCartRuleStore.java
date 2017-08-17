@@ -21,10 +21,10 @@ public class SimpleCartRuleStore implements CartRuleStore {
 	public Set<String> getCommonRuleIds() {
 		return commonRules.keySet();
 	}
-	
+
 	@Override
 	public CartRule getCodeRuleInstance(String code) {
-		if( codeRules.containsKey(code)) {
+		if (codeRules.containsKey(code)) {
 			CartRule instance = (CartRule) codeRules.get(code).getInstance();
 			return instance;
 		} else {
@@ -36,14 +36,14 @@ public class SimpleCartRuleStore implements CartRuleStore {
 	public CartRule getInstance(String id) {
 		return (CartRule) ruleStore.getInstance(id);
 	}
-	
+
 	@Override
 	public Collection<CartRule> getCommonRuleInstances() {
 		Collection<CartRule> instances = new ArrayList<>();
 		for (CartRule rule : commonRules.values()) {
 			CartRule instance = (CartRule) rule.getInstance();
 			instances.add(instance);
-		}		
+		}
 		return instances;
 	}
 
@@ -64,7 +64,6 @@ public class SimpleCartRuleStore implements CartRuleStore {
 
 	public void setRuleStore(RuleStore ruleStore) {
 		this.ruleStore = ruleStore;
-		// init();
 	}
 
 }

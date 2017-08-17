@@ -4,14 +4,22 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bakerbeach.market.cart.api.model.CartRule;
 
 public abstract class AbstractCartRuleImpl extends AbstractRuleImpl implements CartRule {
+	protected static final Logger log = LoggerFactory.getLogger(AbstractCartRuleImpl.class);
+	
 	protected Intention intention;
 	protected Set<String> codes = new HashSet<>();
 	protected Integer maxIndividualUse;
 	protected Set<String> emails = new HashSet<String>();
 	protected Boolean newsletterSubscription = false;
+	protected String customerId;
+	protected Integer useCount;
+	Boolean isUsed = false;
 	
 	@Override
 	public CartRule getInstance() {
@@ -76,5 +84,35 @@ public abstract class AbstractCartRuleImpl extends AbstractRuleImpl implements C
 	public void setNewsletterSubscription(Boolean newsletterSubscription) {
 		this.newsletterSubscription = newsletterSubscription;
 	}
-
+	
+	@Override
+	public String getCustomerId() {
+		return customerId;
+	}
+	
+	@Override
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
+	
+	@Override
+	public Integer getUseCount() {
+		return useCount;
+	}
+	
+	@Override
+	public void setUseCount(Integer useCount) {
+		this.useCount = useCount;
+	}
+	
+	@Override
+	public Boolean getIsUsed() {
+		return isUsed;
+	}
+	
+	@Override
+	public void setIsUsed(boolean isUsed) {
+		this.isUsed = isUsed;		
+	}
+	
 }

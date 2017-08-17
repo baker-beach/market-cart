@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,12 +18,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.bakerbeach.market.cart.api.model.CartRule;
 import com.bakerbeach.market.cart.api.model.CartRule.Intention;
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleSet;
 import com.bakerbeach.market.cart.api.model.CartRuleSetResult;
 import com.bakerbeach.market.cart.api.model.CartRuleStore;
 import com.bakerbeach.market.cart.api.model.RuleMessage;
+import com.bakerbeach.market.cart.api.model.RuleResult;
 import com.bakerbeach.market.cart.api.service.CartRuleAware;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
@@ -30,7 +33,10 @@ import com.bakerbeach.market.cart.api.service.RuleAware;
 import com.bakerbeach.market.cart.dao.MongoCartDao;
 import com.bakerbeach.market.cart.model.TotalImpl;
 import com.bakerbeach.market.cart.model.TotalImpl.LineImpl;
+import com.bakerbeach.market.cart.rules.CartRuleDao;
 import com.bakerbeach.market.cart.rules.SimpleCartRuleContextImpl;
+import com.bakerbeach.market.cart.rules.SimpleCartRuleResult;
+import com.bakerbeach.market.cart.rules.SimpleCartRuleSetResult;
 import com.bakerbeach.market.commons.Message;
 import com.bakerbeach.market.commons.MessageImpl;
 import com.bakerbeach.market.commons.Messages;
@@ -66,8 +72,8 @@ public class XCartServiceImpl implements CartService {
 	@Autowired
 	public CartRuleStore cartRuleStore;
 
-	// @Autowired(required=false)
-	// protected CartRuleService cartRuleService;
+	@Autowired
+	private CartRuleDao cartRuleDao;
 
 	@Override
 	public Cart getInstance(ShopContext shopContext, Customer customer) throws CartServiceException {
@@ -227,31 +233,33 @@ public class XCartServiceImpl implements CartService {
 			i.setDiscount(BigDecimal.ZERO);
 		});
 
-		// TODO: check for rules that may change the items/lines ---
+		// rules that may change the items/lines ---
 		try {
 			if (cart instanceof CartRuleAware) {
-				CartRuleSet cartRuleSet = ((CartRuleAware) cart).getCartRuleSet();
-				cartRuleSet.init(cartRuleStore);
-
 				CartRuleContext context = new SimpleCartRuleContextImpl();
-				context.put("cart", cart);
-				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = cartRuleSet.apply(Intention.LINE_CHANGES, context);
-				
-				CartItem item = createItem(cart, "foo", CartItemQualifier.PRODUCT, TaxCode.NORMAL, true, true, true,
-						BigDecimal.ZERO, shopContext);
-//				if (item != null) {
-//					calculateItem(item, shopContext.getCountryOfDelivery(), customer.getTaxCode());
-					cart.set(item);
-//				}
+				CartRuleSetResult ruleSetResult = applyCartRules(cart, customer, Intention.LINE_CHANGES, context);
 
+				for (RuleResult ruleResult : ruleSetResult.getResults()) {
+					if (ruleResult.containsKey("gtin") && ruleResult.containsKey("quantity")
+							&& ruleResult.containsKey("stdUnitPrice")) {
+						String gtin = (String) ruleResult.get("gtin");
+						String qualifier = (String) ruleResult.get("qualifier");
+						TaxCode taxCode = (TaxCode) ruleResult.get("taxCode");
+						BigDecimal quantity = (BigDecimal) ruleResult.get("quantity");
+						BigDecimal stdUnitPrice = (BigDecimal) ruleResult.get("stdUnitPrice");
+
+						CartItem item = createItem(cart, "discount-item-" + gtin, qualifier, taxCode, quantity, true,
+								true, true, stdUnitPrice, shopContext);
+						cart.set(item);
+					}
+				}
 			}
 		} catch (Exception e) {
 			log.error(ExceptionUtils.getStackTrace(e));
 		}
-		
+
 		// zeilen berechnen (alle produkte) ---
 		synchronizedMap.forEach((k, item) -> {
 			calculateItem(item, shopContext.getCountryOfDelivery(), customer.getTaxCode());
@@ -272,15 +280,11 @@ public class XCartServiceImpl implements CartService {
 		// cart discount before shipping ---
 		try {
 			if (cart instanceof CartRuleAware) {
-				CartRuleSet cartRuleSet = ((CartRuleAware) cart).getCartRuleSet();
-				cartRuleSet.init(cartRuleStore);
-
 				CartRuleContext context = new SimpleCartRuleContextImpl();
-				context.put("cart", cart);
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = cartRuleSet.apply(Intention.DISCOUNT_ON_GOODS, context);
+				CartRuleSetResult result = applyCartRules(cart, customer, Intention.DISCOUNT_ON_GOODS, context);
 				BigDecimal discount = result.getTotal();
 				List<RuleMessage> ruleMessages = result.getMessages();
 
@@ -302,20 +306,17 @@ public class XCartServiceImpl implements CartService {
 
 		try {
 			if (cart instanceof CartRuleAware) {
-				CartRuleSet cartRuleSet = ((CartRuleAware) cart).getCartRuleSet();
-				cartRuleSet.init(cartRuleStore);
-
 				CartRuleContext context = new SimpleCartRuleContextImpl();
 				context.put("cart", cart);
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = cartRuleSet.apply(Intention.SHIPPING, context);
+				CartRuleSetResult result = applyCartRules(cart, customer, Intention.SHIPPING, context);
 				BigDecimal shipping = result.getTotal();
 				List<RuleMessage> ruleMessages = result.getMessages();
-				
-				CartItem shippingItem = createItem(cart, "shipping", CartItemQualifier.SHIPPING, TaxCode.NORMAL, true,
-						true, true, shipping, shopContext);
+
+				CartItem shippingItem = createItem(cart, "shipping", CartItemQualifier.SHIPPING, TaxCode.NORMAL,
+						BigDecimal.ONE, true, true, true, shipping, shopContext);
 				if (shippingItem != null) {
 					calculateItem(shippingItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
 					cart.set(shippingItem);
@@ -328,20 +329,16 @@ public class XCartServiceImpl implements CartService {
 		// TODO: shipping discount ---
 		try {
 			if (cart instanceof CartRuleAware) {
-				CartRuleSet cartRuleSet = ((CartRuleAware) cart).getCartRuleSet();
-				cartRuleSet.init(cartRuleStore);
-
 				CartRuleContext context = new SimpleCartRuleContextImpl();
-				context.put("cart", cart);
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = cartRuleSet.apply(Intention.DISCOUNT_ON_SHIPPING, context);
+				CartRuleSetResult result = applyCartRules(cart, customer, Intention.DISCOUNT_ON_SHIPPING, context);
 				BigDecimal shipping = result.getTotal();
 				List<RuleMessage> ruleMessages = result.getMessages();
 
-				CartItem shippingDiscountItem = createItem(cart, "discount-shipping", CartItemQualifier.SHIPPING, TaxCode.NORMAL, true,
-						true, true, shipping, shopContext);
+				CartItem shippingDiscountItem = createItem(cart, "discount-shipping", CartItemQualifier.SHIPPING,
+						TaxCode.NORMAL, BigDecimal.ONE, true, true, true, shipping, shopContext);
 				if (shippingDiscountItem != null) {
 					calculateItem(shippingDiscountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
 					cart.set(shippingDiscountItem);
@@ -357,27 +354,23 @@ public class XCartServiceImpl implements CartService {
 
 		// waren und services inkl. (line)discount (als basis zur berechnung der
 		// resource produkte) ---
-		@SuppressWarnings("unused")
 		Total goodsAndServices = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT,
 				CartItemQualifier.VPRODUCT, CartItemQualifier.SERVICE, CartItemQualifier.SHIPPING));
 
-		
 		// global cart discount including shipping ans services ---
 		try {
 			if (cart instanceof CartRuleAware) {
-				CartRuleSet cartRuleSet = ((CartRuleAware) cart).getCartRuleSet();
-				cartRuleSet.init(cartRuleStore);
-
 				CartRuleContext context = new SimpleCartRuleContextImpl();
-				context.put("cart", cart);
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = cartRuleSet.apply(Intention.DISCOUNT_ON_GOODS_AND_SERVICES, context);
+				CartRuleSetResult result = applyCartRules(cart, customer, Intention.DISCOUNT_ON_GOODS_AND_SERVICES,
+						context);
 				BigDecimal discount = result.getTotal();
 				List<RuleMessage> ruleMessages = result.getMessages();
 
-				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-2", goodsAndServices, discount, shopContext);
+				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-2", goodsAndServices, discount,
+						shopContext);
 				if (CollectionUtils.isNotEmpty(discountItems)) {
 					for (CartItem discountItem : discountItems) {
 						calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
@@ -543,10 +536,11 @@ public class XCartServiceImpl implements CartService {
 		return items;
 	}
 
-	protected CartItem createItem(Cart cart, String id, String qualifier, TaxCode taxCode, Boolean isVisible,
-			Boolean isVolatile, Boolean isImmutable, BigDecimal stdUnitPrice, ShopContext shopContext) {
+	protected CartItem createItem(Cart cart, String id, String qualifier, TaxCode taxCode, BigDecimal quantity,
+			Boolean isVisible, Boolean isVolatile, Boolean isImmutable, BigDecimal stdUnitPrice,
+			ShopContext shopContext) {
 		try {
-			CartItem item = cart.getNewItem(id, BigDecimal.ONE);
+			CartItem item = cart.getNewItem(id, quantity);
 			item.setId(id);
 			item.setQualifier(qualifier);
 			item.setIsVisible(isVisible);
@@ -554,15 +548,15 @@ public class XCartServiceImpl implements CartService {
 			item.setIsImmutable(isImmutable);
 			item.setTaxCode(taxCode);
 			item.setUnitPrice("std", stdUnitPrice);
-			
+
 			item.getTitle().put("title1", translationService.getMessage("product.cart.title1", "text", "shipping", null,
 					"product.cart.title1", shopContext.getCurrentLocale()));
 			item.getTitle().put("title2", translationService.getMessage("product.cart.title2", "text", "shipping", null,
 					"product.cart.title2", shopContext.getCurrentLocale()));
 			item.getTitle().put("title3", translationService.getMessage("product.cart.title3", "text", "shipping", null,
 					"product.cart.title3", shopContext.getCurrentLocale()));
-			
-			return item;			
+
+			return item;
 		} catch (Exception e) {
 			log.error(ExceptionUtils.getStackTrace(e));
 			return null;
@@ -592,6 +586,91 @@ public class XCartServiceImpl implements CartService {
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public void setRuleUse(ShopContext context, Cart cart, Customer customer, String qualifier)
+			throws CartServiceException {
+		try {
+			if (cart instanceof CartRuleAware) {
+				CartRuleSet ruleSet = ((CartRuleAware) cart).getCartRuleSet();
+				for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
+					String key = entry.getKey();
+					CartRule rule = entry.getValue();
+
+					if (rule.getMaxIndividualUse() != null) {
+						cartRuleDao.setUse(key, customer.getId(), 1, rule.getMaxIndividualUse(), qualifier, new Date());
+						rule.setIsUsed(true);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.info(ExceptionUtils.getMessage(e));
+			throw new CartServiceException();
+		}
+	}
+
+	@Override
+	public void unsetRuleUse(ShopContext context, Cart cart, Customer customer, String qualifier) {
+		try {
+			if (cart instanceof CartRuleAware) {
+				CartRuleSet ruleSet = ((CartRuleAware) cart).getCartRuleSet();
+				for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
+					String key = entry.getKey();
+					CartRule rule = entry.getValue();
+
+					if (rule.getMaxIndividualUse() != null && rule.getIsUsed()) {
+						cartRuleDao.unsetUse(key, customer.getId(), 1, qualifier, new Date());
+						rule.setIsUsed(false);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error(ExceptionUtils.getStackTrace(e));
+		}
+	}
+
+	private CartRuleSetResult applyCartRules(Cart cart, Customer customer, Intention intention,
+			CartRuleContext context) {
+		List<RuleResult> results = new ArrayList<>();
+
+		if (cart instanceof CartRuleAware) {
+			CartRuleSet ruleSet = ((CartRuleAware) cart).getCartRuleSet();
+			// TODO check status
+			ruleSet.init(cartRuleStore);
+
+			for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
+				String key = entry.getKey();
+				CartRule rule = entry.getValue();
+
+				if (rule.getMaxIndividualUse() != null) {
+					if (customer != null) {
+						if (!customer.getId().equals(rule.getCustomerId()) || rule.getUseCount() == null) {
+							rule.setUseCount(cartRuleDao.getUseCount(key, customer.getId()));
+							rule.setCustomerId(customer.getId());
+						}
+
+						if (rule.getUseCount() < rule.getMaxIndividualUse()) {
+							RuleResult result = rule.apply(cart, intention, context);
+							results.add(result);
+						} else {
+							// allready used ---
+							RuleResult result = new SimpleCartRuleResult();
+							result.setMessage(new RuleMessage(RuleMessage.Type.INFO, "max rule use count", key));
+							results.add(result);
+						}
+					}
+				} else {
+					RuleResult result = rule.apply(cart, intention, context);
+					results.add(result);
+				}
+			}
+		}
+
+		SimpleCartRuleSetResult ruleSetResult = new SimpleCartRuleSetResult();
+		ruleSetResult.setResults(results);
+
+		return ruleSetResult;
 	}
 
 	public void setMongoCartDaos(Map<String, MongoCartDao> mongoCartDaos) {

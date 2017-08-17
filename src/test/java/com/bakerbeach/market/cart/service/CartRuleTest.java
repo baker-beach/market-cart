@@ -19,6 +19,7 @@ import com.bakerbeach.market.cart.api.model.CartRuleSet;
 import com.bakerbeach.market.cart.api.model.CartRuleStore;
 import com.bakerbeach.market.cart.api.service.CartRuleAware;
 import com.bakerbeach.market.cart.api.service.CartService;
+import com.bakerbeach.market.cart.api.service.CartServiceException;
 import com.bakerbeach.market.core.api.model.Cart;
 import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.Customer;
@@ -36,9 +37,6 @@ public class CartRuleTest {
 
 	@Autowired
 	private CartService xCartService;
-
-//	@Autowired
-//	public SimpleCouponDao couponDao;
 
 	private static Customer customer;
 	private static ShopContext context;
@@ -102,6 +100,7 @@ public class CartRuleTest {
 			}
 			
 			xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer);
+			xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer);
 			
 			for (CartItem item : cart.getItems().values()) {
 				System.out.println(String.format("item: %s, %s", item.getId(), item.getTotalPrice("std")));
@@ -109,7 +108,18 @@ public class CartRuleTest {
 			System.out.println(String.format("total: %s", cart.getTotal().getGross()));
 			System.out.println(String.format("discount: %s", cart.getDiscount().getGross()));
 			System.out.println(String.format("shipping: %s", cart.getShipping()));
-					
+
+			try {
+				xCartService.setRuleUse(CartRuleTest.context, cart, CartRuleTest.customer, "4711");
+				// xCartService.setIndividualUse(coupon, customerId, orderId, cart, shopCode);;
+			} catch (CartServiceException e) {
+				xCartService.unsetRuleUse(CartRuleTest.context, cart, CartRuleTest.customer, "4711");
+				
+				
+				Assert.assertTrue(e.getMessage(), false);
+			}
+			
+			
 		} catch (Exception e) {
 			Assert.assertTrue(false);
 		}
