@@ -22,21 +22,16 @@ import com.bakerbeach.market.cart.api.model.CartRule;
 import com.bakerbeach.market.cart.api.model.CartRule.Intention;
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleSet;
-import com.bakerbeach.market.cart.api.model.CartRuleSetResult;
 import com.bakerbeach.market.cart.api.model.CartRuleStore;
-import com.bakerbeach.market.cart.api.model.RuleMessage;
-import com.bakerbeach.market.cart.api.model.RuleResult;
+import com.bakerbeach.market.cart.api.model.CartRuleResult;
 import com.bakerbeach.market.cart.api.service.CartRuleAware;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
-import com.bakerbeach.market.cart.api.service.RuleAware;
 import com.bakerbeach.market.cart.dao.MongoCartDao;
 import com.bakerbeach.market.cart.model.TotalImpl;
 import com.bakerbeach.market.cart.model.TotalImpl.LineImpl;
 import com.bakerbeach.market.cart.rules.CartRuleDao;
 import com.bakerbeach.market.cart.rules.SimpleCartRuleContextImpl;
-import com.bakerbeach.market.cart.rules.SimpleCartRuleResult;
-import com.bakerbeach.market.cart.rules.SimpleCartRuleSetResult;
 import com.bakerbeach.market.commons.Message;
 import com.bakerbeach.market.commons.MessageImpl;
 import com.bakerbeach.market.commons.Messages;
@@ -50,7 +45,6 @@ import com.bakerbeach.market.core.api.model.ShopContext;
 import com.bakerbeach.market.core.api.model.TaxCode;
 import com.bakerbeach.market.core.api.model.Total;
 import com.bakerbeach.market.core.api.model.Total.Line;
-import com.bakerbeach.market.shipping.api.service.ShippingService;
 import com.bakerbeach.market.tax.api.service.TaxService;
 import com.bakerbeach.market.translation.api.service.TranslationService;
 
@@ -63,8 +57,8 @@ public class XCartServiceImpl implements CartService {
 	@Autowired
 	private TaxService taxService;
 
-	@Autowired
-	private ShippingService shippingService;
+//	@Autowired
+//	private ShippingService shippingService;
 
 	@Autowired
 	protected TranslationService translationService;
@@ -187,25 +181,18 @@ public class XCartServiceImpl implements CartService {
 
 	@Override
 	public final synchronized void calculate(ShopContext shopContext, Cart cart, Customer customer) {
-		preCalculationHandler(shopContext, cart, customer);
-		basicCalculation(shopContext, cart, customer);
-		postCalculationHandler(shopContext, cart, customer);
+		calculate(shopContext, cart, customer, new MessagesImpl());
 	}
 
-	private void preCalculationHandler(ShopContext shopContext, Cart cart, Customer customer) {
-		// TODO Auto-generated method stub
-	}
-
-	private void postCalculationHandler(ShopContext shopContext, Cart cart, Customer customer) {
-		// TODO Auto-generated method stub
-	}
-
-	private final void basicCalculation(ShopContext shopContext, Cart cart, Customer customer) {
+	@Override
+	public final synchronized void calculate(ShopContext shopContext, Cart cart, Customer customer, Messages messages) {
 		Map<String, CartItem> synchronizedMap = Collections.synchronizedMap(cart.getItems());
 
+		Messages cartMessages = new MessagesImpl();
+		
 		// clear rule messages ---
-		if (cart instanceof RuleAware) {
-			((RuleAware) cart).getRuleMessages().clear();
+		if (cart instanceof CartRuleAware) {
+			((CartRuleAware) cart).getMessages().clear();
 		}
 
 		// remove zero quantity and volatile items and clear line discounts ---
@@ -239,9 +226,11 @@ public class XCartServiceImpl implements CartService {
 				CartRuleContext context = new SimpleCartRuleContextImpl();
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult ruleSetResult = applyCartRules(cart, customer, Intention.LINE_CHANGES, context);
+				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.LINE_CHANGES, context);
+				messages.addAll(getRuleResultsMessages(ruleResults));
+				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
-				for (RuleResult ruleResult : ruleSetResult.getResults()) {
+				for (CartRuleResult ruleResult : ruleResults) {
 					if (ruleResult.containsKey("gtin") && ruleResult.containsKey("quantity")
 							&& ruleResult.containsKey("stdUnitPrice")) {
 						String gtin = (String) ruleResult.get("gtin");
@@ -277,16 +266,17 @@ public class XCartServiceImpl implements CartService {
 		goods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT));
 		cart.setValueOfGoods(goods.getGross());
 
-		// cart discount before shipping ---
+		// discount-1 (discount on goods, before shipping) ---
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleContext context = new SimpleCartRuleContextImpl();
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = applyCartRules(cart, customer, Intention.DISCOUNT_ON_GOODS, context);
-				BigDecimal discount = result.getTotal();
-				List<RuleMessage> ruleMessages = result.getMessages();
+				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.DISCOUNT_ON_GOODS, context);
+				BigDecimal discount = getRuleResultsTotal(ruleResults);
+				messages.addAll(getRuleResultsMessages(ruleResults));
+				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-1", goods, discount, shopContext);
 				if (CollectionUtils.isNotEmpty(discountItems)) {
@@ -311,9 +301,10 @@ public class XCartServiceImpl implements CartService {
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = applyCartRules(cart, customer, Intention.SHIPPING, context);
-				BigDecimal shipping = result.getTotal();
-				List<RuleMessage> ruleMessages = result.getMessages();
+				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.SHIPPING, context);
+				BigDecimal shipping = getRuleResultsTotal(ruleResults);
+				messages.addAll(getRuleResultsMessages(ruleResults));
+				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				CartItem shippingItem = createItem(cart, "shipping", CartItemQualifier.SHIPPING, TaxCode.NORMAL,
 						BigDecimal.ONE, true, true, true, shipping, shopContext);
@@ -333,9 +324,10 @@ public class XCartServiceImpl implements CartService {
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = applyCartRules(cart, customer, Intention.DISCOUNT_ON_SHIPPING, context);
-				BigDecimal shipping = result.getTotal();
-				List<RuleMessage> ruleMessages = result.getMessages();
+				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.DISCOUNT_ON_SHIPPING, context);
+				BigDecimal shipping = getRuleResultsTotal(ruleResults);
+				messages.addAll(getRuleResultsMessages(ruleResults));
+				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				CartItem shippingDiscountItem = createItem(cart, "discount-shipping", CartItemQualifier.SHIPPING,
 						TaxCode.NORMAL, BigDecimal.ONE, true, true, true, shipping, shopContext);
@@ -364,10 +356,11 @@ public class XCartServiceImpl implements CartService {
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				CartRuleSetResult result = applyCartRules(cart, customer, Intention.DISCOUNT_ON_GOODS_AND_SERVICES,
+				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.DISCOUNT_ON_GOODS_AND_SERVICES,
 						context);
-				BigDecimal discount = result.getTotal();
-				List<RuleMessage> ruleMessages = result.getMessages();
+				BigDecimal discount = getRuleResultsTotal(ruleResults);
+				messages.addAll(getRuleResultsMessages(ruleResults));
+				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-2", goodsAndServices, discount,
 						shopContext);
@@ -391,6 +384,50 @@ public class XCartServiceImpl implements CartService {
 				Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT, CartItemQualifier.SERVICE,
 						CartItemQualifier.DISCOUNT, CartItemQualifier.RESOURCE, CartItemQualifier.SHIPPING));
 		cart.setTotal(total);
+		
+		// clear rule messages ---
+		if (cart instanceof CartRuleAware) {
+			((CartRuleAware) cart).getMessages().addAll(cartMessages);
+		}
+
+	}
+
+	private Messages getRuleResultsMessages(List<CartRuleResult> ruleResults, List<String> tags) {
+		Messages messages = new MessagesImpl();		
+		if (CollectionUtils.isNotEmpty(ruleResults)) {
+			for (CartRuleResult result : ruleResults) {
+				for (Message message : result.getMessages()) {
+					if (message != null) {
+						if (CollectionUtils.isNotEmpty(tags)) {
+							if (message.getTags() != null && CollectionUtils.containsAny(message.getTags(), tags)) {
+								messages.add(message);							
+							}
+						} else {
+							messages.add(message);
+						}
+					}					
+				}
+			}			
+		}
+		
+		return messages;
+	}
+	
+	private Messages getRuleResultsMessages(List<CartRuleResult> ruleResults) {
+		return getRuleResultsMessages(ruleResults, null);
+	}
+
+	private BigDecimal getRuleResultsTotal(List<CartRuleResult> ruleResults) {
+		BigDecimal total = BigDecimal.ZERO;
+		if (CollectionUtils.isNotEmpty(ruleResults)) {
+			for (CartRuleResult result : ruleResults) {
+				if (result.getValues().containsKey("total")) {
+					total = total.add(result.getValues().get("total"));
+				}
+			}
+		}
+
+		return total;
 	}
 
 	private void calculateItem(CartItem item, String countryOfDelivery, TaxCode customerTaxCode) {
@@ -630,9 +667,9 @@ public class XCartServiceImpl implements CartService {
 		}
 	}
 
-	private CartRuleSetResult applyCartRules(Cart cart, Customer customer, Intention intention,
+	private List<CartRuleResult> applyCartRules(Cart cart, Customer customer, Intention intention,
 			CartRuleContext context) {
-		List<RuleResult> results = new ArrayList<>();
+		List<CartRuleResult> results = new ArrayList<>();
 
 		if (cart instanceof CartRuleAware) {
 			CartRuleSet ruleSet = ((CartRuleAware) cart).getCartRuleSet();
@@ -643,34 +680,26 @@ public class XCartServiceImpl implements CartService {
 				String key = entry.getKey();
 				CartRule rule = entry.getValue();
 
-				if (rule.getMaxIndividualUse() != null) {
-					if (customer != null) {
-						if (!customer.getId().equals(rule.getCustomerId()) || rule.getUseCount() == null) {
-							rule.setUseCount(cartRuleDao.getUseCount(key, customer.getId()));
-							rule.setCustomerId(customer.getId());
-						}
+				if (intention.equals(rule.getIntention())) {
+					if (rule.getMaxIndividualUse() != null) {
+						if (customer != null) {
+							if (!customer.getId().equals(rule.getCustomerId()) || rule.getUseCount() == null) {
+								rule.setUseCount(cartRuleDao.getUseCount(key, customer.getId()));
+								rule.setCustomerId(customer.getId());
+							}
 
-						if (rule.getUseCount() < rule.getMaxIndividualUse()) {
-							RuleResult result = rule.apply(cart, intention, context);
-							results.add(result);
-						} else {
-							// allready used ---
-							RuleResult result = new SimpleCartRuleResult();
-							result.setMessage(new RuleMessage(RuleMessage.Type.INFO, "max rule use count", key));
+							CartRuleResult result = rule.apply(cart, intention, context);
 							results.add(result);
 						}
-					}
-				} else {
-					RuleResult result = rule.apply(cart, intention, context);
-					results.add(result);
+					} else {
+						CartRuleResult result = rule.apply(cart, intention, context);
+						results.add(result);
+					}					
 				}
 			}
 		}
 
-		SimpleCartRuleSetResult ruleSetResult = new SimpleCartRuleSetResult();
-		ruleSetResult.setResults(results);
-
-		return ruleSetResult;
+		return results;
 	}
 
 	public void setMongoCartDaos(Map<String, MongoCartDao> mongoCartDaos) {

@@ -4,13 +4,14 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.bakerbeach.market.cart.api.model.RuleMessage;
-import com.bakerbeach.market.cart.api.model.RuleResult;
+import com.bakerbeach.market.cart.api.model.CartRuleResult;
+import com.bakerbeach.market.commons.Messages;
+import com.bakerbeach.market.commons.MessagesImpl;
 
-public class SimpleCartRuleResult implements RuleResult {
+public class SimpleCartRuleResult implements CartRuleResult {
 	private Map<String, Object> map = new HashMap<>();
 	private Map<String, BigDecimal> values = new HashMap<String, BigDecimal>();
-	private RuleMessage message;
+	private Messages messages = new MessagesImpl();
 
 	@Override
 	public boolean containsKey(Object key) {
@@ -33,18 +34,8 @@ public class SimpleCartRuleResult implements RuleResult {
 	}
 
 	@Override
-	public RuleMessage getMessage() {
-		return message;
+	public Messages getMessages() {
+		return messages;
 	}
-
-	@Override
-	public void setMessage(RuleMessage message) {
-		this.message = message;
-	}
-
-	@Override
-	public boolean hasError() {
-		return message.getType().equals(RuleMessage.Type.ERROR);
-	}
-
+	
 }

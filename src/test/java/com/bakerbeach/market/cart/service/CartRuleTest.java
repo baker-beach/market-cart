@@ -1,6 +1,7 @@
 package com.bakerbeach.market.cart.service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -20,6 +21,9 @@ import com.bakerbeach.market.cart.api.model.CartRuleStore;
 import com.bakerbeach.market.cart.api.service.CartRuleAware;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
+import com.bakerbeach.market.commons.Message;
+import com.bakerbeach.market.commons.Messages;
+import com.bakerbeach.market.commons.MessagesImpl;
 import com.bakerbeach.market.core.api.model.Cart;
 import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.Customer;
@@ -100,7 +104,9 @@ public class CartRuleTest {
 			}
 			
 			xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer);
-			xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer);
+			
+			Messages messages = new MessagesImpl();
+			xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer, messages);
 			
 			for (CartItem item : cart.getItems().values()) {
 				System.out.println(String.format("item: %s, %s", item.getId(), item.getTotalPrice("std")));
@@ -114,12 +120,14 @@ public class CartRuleTest {
 				// xCartService.setIndividualUse(coupon, customerId, orderId, cart, shopCode);;
 			} catch (CartServiceException e) {
 				xCartService.unsetRuleUse(CartRuleTest.context, cart, CartRuleTest.customer, "4711");
-				
-				
-				Assert.assertTrue(e.getMessage(), false);
+				// Assert.assertTrue(e.getMessage(), false);
 			}
-			
-			
+
+			for (Message message : messages) {
+				System.out.println(message);
+				//System.out.println(String.format("message: %s, %s, %s", message.getType(), message.getCode(), Arrays.asList(message.getArgs())));
+			}
+
 		} catch (Exception e) {
 			Assert.assertTrue(false);
 		}

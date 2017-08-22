@@ -67,23 +67,23 @@ public class CartServiceImpl implements CartService {
 	protected CouponStore couponStore;
 
 	protected SimpleCouponDao couponDao;
-	
+
 	@Override
 	public Cart getInstance(ShopContext context, Customer customer) throws CartServiceException {
 		try {
 			if (!(customer.isAnonymousCustomer())) {
 				Cart cart = loadActiveCart(context, customer);
 				if (cart != null) {
-					return cart;					
+					return cart;
 				}
 			}
 		} catch (CartServiceException e) {
 			log.error(ExceptionUtils.getStackTrace(e));
 		}
-		
+
 		return getNewInstance(context, customer);
 	}
-		
+
 	@Override
 	public Cart getNewInstance(ShopContext shopContext, Customer customer) throws CartServiceException {
 		Cart cart = getNewCart(shopContext);
@@ -197,42 +197,11 @@ public class CartServiceImpl implements CartService {
 		for (CartItem item : cart.getCartItems()) {
 			calculateItem(item, shopContext.getCountryOfDelivery(), customer.getTaxCode());
 		}
-
+ 
 		Total goods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT));
 
 		// TODO: set payment ---
 		cart.setPayment(BigDecimal.ZERO);
-
-		// TODO: line-discount ---
-		/*
-		 * List<Coupon> coupons = cart.getCoupons(); for (Coupon coupon :
-		 * coupons) { try { CouponResult couponResult =
-		 * coupon.apply(shopContext, customer, cart); if
-		 * (!couponResult.hasErrors()) { for (CartItem item :
-		 * cart.getCartItems()) { if
-		 * (couponResult.getDiscounts().containsKey(item.getId())) { BigDecimal
-		 * discount = couponResult.getDiscounts().get(item.getId());
-		 * item.setDiscount(discount);
-		 * 
-		 * // create one discount resource item for each line discount --- if
-		 * (!discountResourceItems.containsKey(item.getTaxCode())) {
-		 * ResourceCartItemImpl resourceCartItem = new ResourceCartItemImpl();
-		 * resourceCartItem.setGtin("DISCOUNT_".concat(item.getTaxCode().name())
-		 * ); resourceCartItem.setTaxCode(item.getTaxCode());
-		 * resourceCartItem.setTaxPercent(item.getTaxPercent());
-		 * 
-		 * discountResourceItems.put(item.getTaxCode(), resourceCartItem); }
-		 * 
-		 * CartItem resourceCartItem =
-		 * discountResourceItems.get(item.getTaxCode());
-		 * resourceCartItem.setUnitPrice(resourceCartItem.getUnitPrice().add(
-		 * item.getDiscount()));
-		 * resourceCartItem.setTotalPrice(resourceCartItem.getTotalPrice().add(
-		 * item.getDiscount())); } } } } catch (Exception e) { for (CartItem
-		 * item : cart.getCartItems()) { item.setDiscount(BigDecimal.ZERO); }
-		 * 
-		 * log.error(ExceptionUtils.getStackTrace(e)); } }
-		 */
 
 		// TODO: waren inkl. discount ---
 
@@ -292,7 +261,7 @@ public class CartServiceImpl implements CartService {
 					if (!couponResult.hasErrors()) {
 						if (couponResult.getDiscounts().containsKey("total")) {
 							BigDecimal discount = couponResult.getDiscounts().get("total");
-							
+
 							List<CartItem> cartDiscountItems = getCartDiscountItems(cart, goodsAndServices, discount);
 							cart.addAll(cartDiscountItems);
 						}
@@ -392,10 +361,10 @@ public class CartServiceImpl implements CartService {
 
 		return total;
 	}
-	
+
 	@Override
 	public void merge(Cart source, Cart target) {
-		if (source != null && target != null) {			
+		if (source != null && target != null) {
 			// TODO: a better merge (check if item is already available)
 			List<String> qualifiers = Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT);
 			for (CartItem item : source.getCartItems()) {
@@ -406,76 +375,32 @@ public class CartServiceImpl implements CartService {
 
 		}
 	}
-	
-//	public void refresh(Cart cart, List<Product> products) {
-//
-//		Map<String, Product> map = new HashMap<String, Product>();
-//		for (Product p : products) {
-//			map.put(p.getGtin(), p);
-//		}
-//		
-//		for (CartItem i : cart.getCartItems()) {
-//			if (map.containsKey(i.getGtin())) {
-//				Product p = map.get(i.getGtin());
-//				
-//				CartItem cartItem = getNewCartItem(i.getGtin(), i.getQuantity());
-//				
-//				if (p instanceof BundleProduct) {
-//					BundleProduct b = (BundleProduct) p;
-//					
-//					
-//					for (BundleComponent component : b.getComponents()) {
-//						String componentName = component.getName();
-//						
-//						CartItemComponent c = i.getComponents().get(componentName);
-//						for (BundleOption o : component.getOptions()) {
-//							if (c.getOptions().containsKey(o.getGtin())) {
-//								
-//							}
-//						}
-//						
-//						
-//					}
-//					
-//				}
-//				
-//				
-//				
-//			}
-//		}
-//		
-//		for (Product p : products) {
-//			
-//		}
-//		
-//		
-//	}
-	
+
 	@Override
 	public Cart getNewCart(ShopContext shopContex) throws CartServiceException {
 		return new SimpleCartImpl();
 	}
-	
+
 	@Override
 	public Cart loadCart(ShopContext context, String id) throws CartServiceException {
 		try {
 			final Query<SimpleCartImpl> query = datastore.createQuery(SimpleCartImpl.class).field("_id")
 					.equal(new ObjectId(id));
 			Cart cart = query.get();
-			
+
 			return cart;
 		} catch (Exception e) {
 			throw new CartServiceException();
 		}
 	}
-	
+
 	@Override
 	public Cart loadActiveCart(ShopContext context, Customer customer) throws CartServiceException {
 		List<Cart> carts = loadCart(context, customer, null, Arrays.asList("ACTIVE"));
 		if (CollectionUtils.isNotEmpty(carts)) {
 			return carts.get(0);
 		}
-		
+
 		return null;
 	}
 
@@ -489,13 +414,13 @@ public class CartServiceImpl implements CartService {
 				query.field("status").in(status);
 			}
 			query.order("-updated_at");
-			
+
 			List<SimpleCartImpl> carts = query.asList();
-			
+
 			return new ArrayList<Cart>(carts);
 		} catch (Exception e) {
 			throw new CartServiceException();
-		}		
+		}
 	}
 
 	@Override
@@ -510,7 +435,7 @@ public class CartServiceImpl implements CartService {
 			throw new CartServiceException();
 		}
 	}
-	
+
 	@Override
 	public void deleteCart(Cart cart) throws CartServiceException {
 		try {
@@ -519,7 +444,7 @@ public class CartServiceImpl implements CartService {
 			throw new CartServiceException();
 		}
 	}
-	
+
 	@Override
 	public Messages check(ShopContext shopContext, Cart cart, Customer customer, boolean timing) {
 		// TODO: implement
@@ -559,7 +484,23 @@ public class CartServiceImpl implements CartService {
 	@Override
 	public void setStatus(Customer customer, Cart cart, String status) throws CartServiceException {
 		// TODO Auto-generated method stub
-		throw new RuntimeException("not implemented");		
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public void calculate(ShopContext shopContext, Cart cart, Customer customer, Messages messages) {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public void setRuleUse(ShopContext context, Cart cart, Customer customer, String string)
+			throws CartServiceException {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public void unsetRuleUse(ShopContext context, Cart cart, Customer customer, String string) {
+		throw new RuntimeException("not implemented");
 	}
 
 }

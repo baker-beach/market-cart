@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,6 +22,8 @@ import org.mongodb.morphia.annotations.Version;
 import com.bakerbeach.market.cart.api.model.CartRuleSet;
 import com.bakerbeach.market.cart.api.service.CartRuleAware;
 import com.bakerbeach.market.cart.rules.SimpleCartRuleSet;
+import com.bakerbeach.market.commons.Messages;
+import com.bakerbeach.market.commons.MessagesImpl;
 import com.bakerbeach.market.core.api.model.Cart;
 import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.Coupon;
@@ -70,13 +71,9 @@ public class XCartImpl implements Cart, CartRuleAware {
 	@Transient
 	protected CartRuleSet cartRuleSet = new SimpleCartRuleSet();
 	
-//	@Transient
-//	protected List<RuleMessage> ruleMessages = new ArrayList<>();
-//	@Transient
-//	protected Set<String> couponRules = new LinkedHashSet<>();
-//	@Transient
-//	protected Set<String> commonRules = new LinkedHashSet<>();
-
+	@Transient
+	protected Messages messages = new MessagesImpl();
+	
 	protected String foo = "bar";
 
 	public XCartImpl() {
@@ -390,6 +387,11 @@ public class XCartImpl implements Cart, CartRuleAware {
 	@Override
 	public CartRuleSet getCartRuleSet() {
 		return cartRuleSet;
+	}
+	
+	@Override
+	public Messages getMessages() {
+		return messages;
 	}
 	
 }

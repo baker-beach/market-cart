@@ -2,6 +2,7 @@ package com.bakerbeach.market.cart.rules;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -10,10 +11,9 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.bakerbeach.market.cart.api.model.CartRule;
 import com.bakerbeach.market.cart.api.model.CartRuleStore;
-import com.bakerbeach.market.cart.api.model.RuleStore;
 
 public class SimpleCartRuleStore implements CartRuleStore {
-	private RuleStore ruleStore;
+	private Map<String, CartRule> rules = new HashMap<>();
 	private Map<String, CartRule> codeRules = new LinkedHashMap<>();
 	private Map<String, CartRule> commonRules = new LinkedHashMap<>();
 
@@ -34,7 +34,12 @@ public class SimpleCartRuleStore implements CartRuleStore {
 
 	@Override
 	public CartRule getInstance(String id) {
-		return (CartRule) ruleStore.getInstance(id);
+		CartRule rule = rules.get(id);
+		if (rule != null) {
+			return rule.getInstance();
+		} else {
+			return null;
+		}
 	}
 
 	@Override
@@ -49,7 +54,7 @@ public class SimpleCartRuleStore implements CartRuleStore {
 
 	public void setRules(Collection<CartRule> rules) {
 		for (CartRule rule : rules) {
-			ruleStore.setRule(rule);
+			this.rules.put(rule.getId(), rule);
 
 			Set<String> codes = rule.getCodes();
 			if (CollectionUtils.isNotEmpty(codes)) {
@@ -60,10 +65,6 @@ public class SimpleCartRuleStore implements CartRuleStore {
 				commonRules.put(rule.getId(), rule);
 			}
 		}
-	}
-
-	public void setRuleStore(RuleStore ruleStore) {
-		this.ruleStore = ruleStore;
 	}
 
 }

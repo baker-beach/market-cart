@@ -9,9 +9,6 @@
 
 
 	<bean id="cartRuleStore" class="com.bakerbeach.market.cart.rules.SimpleCartRuleStore">
-		<property name="ruleStore">
-			<bean id="ruleStore" class="com.bakerbeach.market.cart.rules.SimpleRuleStore" />
-		</property>		
 		<property name="rules">
 			<list value-type="com.bakerbeach.market.cart.api.model.CartRule">
 				<bean class="com.bakerbeach.market.cart.rules.PumpkinFreeShippingRuleImpl">
