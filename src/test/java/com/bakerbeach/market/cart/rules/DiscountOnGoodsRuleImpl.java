@@ -1,6 +1,7 @@
 package com.bakerbeach.market.cart.rules;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleResult;
@@ -33,7 +34,7 @@ public class DiscountOnGoodsRuleImpl extends AbstractCartRuleImpl {
 
 	@Override
 	protected void addSuccessMessage(CartRuleResult result) {
-		result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "discount, foo", "cart", new BigDecimal("-3.00")));
+		result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "discount, foo", Arrays.asList(Message.TAG_CART), new BigDecimal("-3.00")));
 	}
 
 	@Override

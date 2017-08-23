@@ -1,6 +1,7 @@
 package com.bakerbeach.market.cart.rules;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleResult;
@@ -17,7 +18,7 @@ public class PumpkinFreeShippingRuleImpl extends AbstractCartRuleImpl {
 
 		if (intention.equals(this.getIntention())) {
 			result.getValues().put("total", new BigDecimal("-3.95"));
-			result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-true", "cart"));
+			result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-true", Arrays.asList(Message.TAG_CART)));
 		}
 
 		return result;

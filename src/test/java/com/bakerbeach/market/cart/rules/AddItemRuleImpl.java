@@ -1,6 +1,7 @@
 package com.bakerbeach.market.cart.rules;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -43,7 +44,7 @@ public class AddItemRuleImpl extends AbstractCartRuleImpl {
 	}
 
 	protected void addSuccessMessage(CartRuleResult result) {
-		result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "extra item", result.get("gtin")));
+		result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "extra item", null, result.get("gtin")));
 	}
 
 }

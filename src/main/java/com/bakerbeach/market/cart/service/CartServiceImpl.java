@@ -114,7 +114,7 @@ public class CartServiceImpl implements CartService {
 			cartItem.setId(UUID.randomUUID().toString());
 			cart.add(cartItem);
 
-			messages.add(new MessageImpl(Message.TYPE_INFO, "Cart item successfully added.", cartItem.getGtin(),
+			messages.add(new MessageImpl(Message.TYPE_INFO, "Cart item successfully added.", Arrays.asList(Message.TAG_BOX), cartItem.getGtin(),
 					cartItem.getBrand(), cartItem.getQuantity()));
 			return messages;
 		} catch (CartServiceException e) {
@@ -123,7 +123,7 @@ public class CartServiceImpl implements CartService {
 			log.error(ExceptionUtils.getStackTrace(e));
 
 			Messages messages = new MessagesImpl();
-			messages.add(new MessageImpl(Message.TYPE_ERROR, "cart.error."));
+			messages.add(new MessageImpl(Message.TYPE_ERROR, "cart.error.", Arrays.asList(Message.TAG_BOX)));
 			throw new CartServiceException(messages);
 		}
 	}
@@ -159,7 +159,7 @@ public class CartServiceImpl implements CartService {
 			}
 
 			messages.addGlobalMessage(
-					new MessageImpl(Message.TYPE_INFO, "Cart item successfully updated.", item.getId()));
+					new MessageImpl(Message.TYPE_INFO, "Cart item successfully updated.", Arrays.asList(Message.TAG_BOX), item.getId()));
 			return messages;
 		} catch (ServiceException e) {
 			return e.getMessages();
@@ -167,7 +167,7 @@ public class CartServiceImpl implements CartService {
 			log.error(ExceptionUtils.getStackTrace(e));
 
 			Messages messages = new MessagesImpl();
-			messages.addGlobalMessage(new MessageImpl(Message.TYPE_ERROR, "cart.error"));
+			messages.addGlobalMessage(new MessageImpl(Message.TYPE_ERROR, "cart.error", Arrays.asList(Message.TAG_BOX)));
 			throw new CartServiceException(messages);
 		}
 	}

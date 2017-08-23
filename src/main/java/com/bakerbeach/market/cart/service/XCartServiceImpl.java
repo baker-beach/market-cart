@@ -115,7 +115,7 @@ public class XCartServiceImpl implements CartService {
 
 			cart.add(cartItem);
 
-			messages.add(new MessageImpl(Message.TYPE_INFO, "successfully.added.item", cartItem.getId(),
+			messages.add(new MessageImpl(Message.TYPE_INFO, "successfully.added.item", Arrays.asList(Message.TAG_BOX), cartItem.getId(),
 					cartItem.getCode(), cartItem.getQuantity()));
 			return messages;
 		} catch (CartServiceException e) {
@@ -124,7 +124,7 @@ public class XCartServiceImpl implements CartService {
 			log.error(ExceptionUtils.getStackTrace(e));
 
 			Messages messages = new MessagesImpl();
-			messages.add(new MessageImpl(Message.TYPE_ERROR, "cart.error."));
+			messages.add(new MessageImpl(Message.TYPE_ERROR, "cart.error.", Arrays.asList(Message.TAG_BOX)));
 			throw new CartServiceException(messages);
 		}
 	}
@@ -153,7 +153,7 @@ public class XCartServiceImpl implements CartService {
 					item.setQuantity(quantity);
 				}
 
-				messages.addGlobalMessage(new MessageImpl(Message.TYPE_INFO, "successfully.updated.item", item.getId(),
+				messages.addGlobalMessage(new MessageImpl(Message.TYPE_INFO, "successfully.updated.item", Arrays.asList(Message.TAG_BOX), item.getId(),
 						item.getCode(), item.getQuantity()));
 			}
 
@@ -164,7 +164,7 @@ public class XCartServiceImpl implements CartService {
 			log.error(ExceptionUtils.getStackTrace(e));
 
 			Messages messages = new MessagesImpl();
-			messages.addGlobalMessage(new MessageImpl(Message.TYPE_ERROR, "cart.error"));
+			messages.addGlobalMessage(new MessageImpl(Message.TYPE_ERROR, "cart.error", Arrays.asList(Message.TAG_BOX)));
 			throw new CartServiceException(messages);
 		}
 	}

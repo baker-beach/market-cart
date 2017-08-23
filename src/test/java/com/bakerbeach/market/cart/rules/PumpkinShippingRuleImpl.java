@@ -1,6 +1,7 @@
 package com.bakerbeach.market.cart.rules;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -22,9 +23,9 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 				BigDecimal valueOfGoods = cart.getValueOfShippingGoods();
 
 				if (valueOfGoods.compareTo(new BigDecimal("39.00")) >= 0) {
-					result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-false", "cart", new BigDecimal("0")));
+					result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-false", Arrays.asList(Message.TAG_CART), new BigDecimal("0")));
 				} else {
-					result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-true", "cart", new BigDecimal("4.95")));
+					result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-true", Arrays.asList(Message.TAG_CART), new BigDecimal("4.95")));
 					result.getValues().put("total", new BigDecimal("4.95"));
 				}
 			}
