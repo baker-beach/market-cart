@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleResult;
+import com.bakerbeach.market.commons.Message;
+import com.bakerbeach.market.commons.MessageImpl;
 import com.bakerbeach.market.core.api.model.Cart;
 
 public class PumpkinFreeShippingRuleImpl extends AbstractCartRuleImpl {
@@ -15,6 +17,7 @@ public class PumpkinFreeShippingRuleImpl extends AbstractCartRuleImpl {
 
 		if (intention.equals(this.getIntention())) {
 			result.getValues().put("total", new BigDecimal("-3.95"));
+			result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-true", "cart"));
 		}
 
 		return result;
