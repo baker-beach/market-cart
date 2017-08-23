@@ -671,6 +671,8 @@ public class XCartServiceImpl implements CartService {
 			CartRuleContext context) {
 		List<CartRuleResult> results = new ArrayList<>();
 
+		Date now = new Date();
+
 		if (cart instanceof CartRuleAware) {
 			CartRuleSet ruleSet = ((CartRuleAware) cart).getCartRuleSet();
 			// TODO check status
@@ -681,20 +683,23 @@ public class XCartServiceImpl implements CartService {
 				CartRule rule = entry.getValue();
 
 				if (intention.equals(rule.getIntention())) {
-					if (rule.getMaxIndividualUse() != null) {
-						if (customer != null) {
-							if (!customer.getId().equals(rule.getCustomerId()) || rule.getUseCount() == null) {
-								rule.setUseCount(cartRuleDao.getUseCount(key, customer.getId()));
-								rule.setCustomerId(customer.getId());
+					
+					if (!now.before(rule.getStart()) && now.before(rule.getEnd())) {
+						if (rule.getMaxIndividualUse() != null) {
+							if (customer != null) {
+								if (!customer.getId().equals(rule.getCustomerId()) || rule.getUseCount() == null) {
+									rule.setUseCount(cartRuleDao.getUseCount(key, customer.getId()));
+									rule.setCustomerId(customer.getId());
+								}
+								
+								CartRuleResult result = rule.apply(cart, intention, context);
+								results.add(result);
 							}
-
+						} else {
 							CartRuleResult result = rule.apply(cart, intention, context);
 							results.add(result);
-						}
-					} else {
-						CartRuleResult result = rule.apply(cart, intention, context);
-						results.add(result);
-					}					
+						}					
+					}
 				}
 			}
 		}
