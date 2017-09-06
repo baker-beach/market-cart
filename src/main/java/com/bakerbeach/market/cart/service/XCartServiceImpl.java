@@ -227,8 +227,8 @@ public class XCartServiceImpl implements CartService {
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
 				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.LINE_CHANGES, context);
-				messages.addAll(getRuleResultsMessages(ruleResults));
-				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
+				messages.add(getRuleResultsMessages(ruleResults));
+				cartMessages.add(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				for (CartRuleResult ruleResult : ruleResults) {
 					if (ruleResult.containsKey("gtin") && ruleResult.containsKey("quantity")
@@ -275,8 +275,8 @@ public class XCartServiceImpl implements CartService {
 
 				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.DISCOUNT_ON_GOODS, context);
 				BigDecimal discount = getRuleResultsTotal(ruleResults);
-				messages.addAll(getRuleResultsMessages(ruleResults));
-				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
+				messages.add(getRuleResultsMessages(ruleResults));
+				cartMessages.add(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-1", goods, discount, shopContext);
 				if (CollectionUtils.isNotEmpty(discountItems)) {
@@ -303,8 +303,8 @@ public class XCartServiceImpl implements CartService {
 
 				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.SHIPPING, context);
 				BigDecimal shipping = getRuleResultsTotal(ruleResults);
-				messages.addAll(getRuleResultsMessages(ruleResults));
-				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
+				messages.add(getRuleResultsMessages(ruleResults));
+				cartMessages.add(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				CartItem shippingItem = createItem(cart, "shipping", CartItemQualifier.SHIPPING, TaxCode.NORMAL,
 						BigDecimal.ONE, true, true, true, shipping, shopContext);
@@ -326,8 +326,8 @@ public class XCartServiceImpl implements CartService {
 
 				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.DISCOUNT_ON_SHIPPING, context);
 				BigDecimal shipping = getRuleResultsTotal(ruleResults);
-				messages.addAll(getRuleResultsMessages(ruleResults));
-				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
+				messages.add(getRuleResultsMessages(ruleResults));
+				cartMessages.add(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				CartItem shippingDiscountItem = createItem(cart, "discount-shipping", CartItemQualifier.SHIPPING,
 						TaxCode.NORMAL, BigDecimal.ONE, true, true, true, shipping, shopContext);
@@ -359,8 +359,8 @@ public class XCartServiceImpl implements CartService {
 				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.DISCOUNT_ON_GOODS_AND_SERVICES,
 						context);
 				BigDecimal discount = getRuleResultsTotal(ruleResults);
-				messages.addAll(getRuleResultsMessages(ruleResults));
-				cartMessages.addAll(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
+				messages.add(getRuleResultsMessages(ruleResults));
+				cartMessages.add(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-2", goodsAndServices, discount,
 						shopContext);
@@ -387,7 +387,7 @@ public class XCartServiceImpl implements CartService {
 		
 		// clear rule messages ---
 		if (cart instanceof CartRuleAware) {
-			((CartRuleAware) cart).getMessages().addAll(cartMessages);
+			((CartRuleAware) cart).getMessages().add(cartMessages);
 		}
 
 	}
@@ -396,7 +396,7 @@ public class XCartServiceImpl implements CartService {
 		Messages messages = new MessagesImpl();		
 		if (CollectionUtils.isNotEmpty(ruleResults)) {
 			for (CartRuleResult result : ruleResults) {
-				for (Message message : result.getMessages()) {
+				for (Message message : result.getMessages().getAll()) {
 					if (message != null) {
 						if (CollectionUtils.isNotEmpty(tags)) {
 							if (message.getTags() != null && CollectionUtils.containsAny(message.getTags(), tags)) {

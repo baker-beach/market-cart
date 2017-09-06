@@ -18,7 +18,8 @@ public class DiscountOnGoodsRuleImpl extends AbstractCartRuleImpl {
 
 		if (intention.equals(this.getIntention())) {
 			result.getValues().put("total", new BigDecimal("-3.00"));
-			addSuccessMessage(result);
+			result.getMessages().add(new MessageImpl("discount-1", Message.TYPE_INFO, "discount",
+					Arrays.asList(Message.TAG_CART), Arrays.asList(new BigDecimal("-3.00"))));
 		}
 
 		return result;
@@ -30,16 +31,6 @@ public class DiscountOnGoodsRuleImpl extends AbstractCartRuleImpl {
 
 	public void setLimit(BigDecimal limit) {
 		this.limit = limit;
-	}
-
-	@Override
-	protected void addSuccessMessage(CartRuleResult result) {
-		result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "discount, foo", Arrays.asList(Message.TAG_CART), new BigDecimal("-3.00")));
-	}
-
-	@Override
-	protected void addErrorMessage(CartRuleResult result) {
-		// TODO Auto-generated method stub
 	}
 
 }

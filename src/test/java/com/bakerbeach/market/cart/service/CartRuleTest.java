@@ -1,7 +1,6 @@
 package com.bakerbeach.market.cart.service;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -95,7 +94,7 @@ public class CartRuleTest {
 			
 			{
 				CartItem item = cart.getNewItem("gtin-002", BigDecimal.ONE);
-				item.setQuantity(new BigDecimal("5"));
+				item.setQuantity(new BigDecimal("1"));
 				item.setUnitPrice("std", new BigDecimal("3.42"));
 				item.setQualifier("PRODUCT");
 				item.setTaxCode(TaxCode.REDUCED);
@@ -123,7 +122,7 @@ public class CartRuleTest {
 				// Assert.assertTrue(e.getMessage(), false);
 			}
 
-			for (Message message : messages) {
+			for (Message message : messages.getAll()) {
 				System.out.println(message);
 				//System.out.println(String.format("message: %s, %s, %s", message.getType(), message.getCode(), Arrays.asList(message.getArgs())));
 			}

@@ -23,9 +23,9 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 				BigDecimal valueOfGoods = cart.getValueOfShippingGoods();
 
 				if (valueOfGoods.compareTo(new BigDecimal("39.00")) >= 0) {
-					result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-false", Arrays.asList(Message.TAG_CART), new BigDecimal("0")));
+					result.getMessages().add(new MessageImpl("shipping", Message.TYPE_INFO, "shipping-false", Arrays.asList(Message.TAG_CART), Arrays.asList(new BigDecimal("0"))));
 				} else {
-					result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "shipping-true", Arrays.asList(Message.TAG_CART), new BigDecimal("4.95")));
+					result.getMessages().add(new MessageImpl("shipping", Message.TYPE_INFO, "shipping-true", Arrays.asList(Message.TAG_CART), Arrays.asList(new BigDecimal("4.95"), "bar")));
 					result.getValues().put("total", new BigDecimal("4.95"));
 				}
 			}
@@ -42,18 +42,6 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 
 	public void setLimit(BigDecimal limit) {
 		this.limit = limit;
-	}
-
-	@Override
-	protected void addSuccessMessage(CartRuleResult result) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected void addErrorMessage(CartRuleResult result) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

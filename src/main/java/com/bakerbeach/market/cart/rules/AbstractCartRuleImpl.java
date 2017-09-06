@@ -47,9 +47,9 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 		}
 	}
 
-	protected abstract void addSuccessMessage(CartRuleResult result);
-
-	protected abstract void addErrorMessage(CartRuleResult result);
+//	protected abstract void addSuccessMessage(CartRuleResult result);
+//
+//	protected abstract void addErrorMessage(CartRuleResult result);
 
 	@Override
 	public String getId() {
