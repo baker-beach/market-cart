@@ -1,6 +1,7 @@
 package com.bakerbeach.market.cart.service;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.After;
@@ -15,9 +16,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.bakerbeach.market.cart.api.model.CartRuleSet;
+import com.bakerbeach.market.cart.api.model.CartRule;
 import com.bakerbeach.market.cart.api.model.CartRuleStore;
-import com.bakerbeach.market.cart.api.service.CartRuleAware;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
 import com.bakerbeach.market.commons.Message;
@@ -68,6 +68,53 @@ public class CartRuleTest {
 	}
 	
 	@Test
+	public void codeRuleTest() {
+		try {
+			List<Cart> carts = xCartService.loadCart(context, customer, null, null);
+			Cart cart = carts.get(0);			
+			Assert.assertTrue(cart != null);			
+			
+			{
+				CartItem item = cart.getNewItem("gtin-001", BigDecimal.ONE);
+				item.setQuantity(new BigDecimal("1"));
+				item.setUnitPrice("std", new BigDecimal("10.00"));
+				item.setQualifier("PRODUCT");
+				item.setTaxCode(TaxCode.REDUCED);
+				item.setId(item.createId());
+				cart.add(item);				
+			}
+
+			String code = "K&J2017";
+			CartRule rule = cartRuleStore.getCodeRuleInstance(code);
+			Assert.assertTrue(rule != null);
+			
+			Message msg = xCartService.checkCartRule(code, rule, new Date(), customer);
+			if (rule.getStatus().equals(CartRule.Status.ENABLED)) {
+				xCartService.addCodeRule(cart, code, rule);
+			}
+
+			Messages messages = new MessagesImpl();
+			xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer, messages);
+			
+			Assert.assertTrue(rule != null);
+
+			try {
+				xCartService.setRuleUse(CartRuleTest.context, cart, CartRuleTest.customer, "4711");
+			} catch (CartServiceException e) {
+				System.out.println("error - unset rule use");
+				xCartService.unsetRuleUse(CartRuleTest.context, cart, CartRuleTest.customer, "4711");
+			}
+			
+			printMessages(messages);
+			printCart(cart);
+			
+		} catch (Exception e) {
+			Assert.assertTrue(false);
+		}
+	}
+	
+	
+	@Test
 	public void checkInstanceStatus() {
 		
 		try {
@@ -76,12 +123,6 @@ public class CartRuleTest {
 			Cart cart = carts.get(0);			
 			Assert.assertTrue(cart != null);			
 
-			CartRuleSet cartRuleSet = null;
-			if (cart instanceof CartRuleAware) {
-				cartRuleSet = ((CartRuleAware) cart).getCartRuleSet();
-				cartRuleSet.init(cartRuleStore);				
-			}
-			
 			{
 				CartItem item = cart.getNewItem("gtin-001", BigDecimal.ONE);
 				item.setQuantity(new BigDecimal("6"));
@@ -107,13 +148,6 @@ public class CartRuleTest {
 			Messages messages = new MessagesImpl();
 			xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer, messages);
 			
-			for (CartItem item : cart.getItems().values()) {
-				System.out.println(String.format("item: %s, %s", item.getId(), item.getTotalPrice("std")));
-			}
-			System.out.println(String.format("total: %s", cart.getTotal().getGross()));
-			System.out.println(String.format("discount: %s", cart.getDiscount().getGross()));
-			System.out.println(String.format("shipping: %s", cart.getShipping()));
-
 			try {
 				xCartService.setRuleUse(CartRuleTest.context, cart, CartRuleTest.customer, "4711");
 				// xCartService.setIndividualUse(coupon, customerId, orderId, cart, shopCode);;
@@ -122,10 +156,8 @@ public class CartRuleTest {
 				// Assert.assertTrue(e.getMessage(), false);
 			}
 
-			for (Message message : messages.getAll()) {
-				System.out.println(message);
-				//System.out.println(String.format("message: %s, %s, %s", message.getType(), message.getCode(), Arrays.asList(message.getArgs())));
-			}
+			printMessages(messages);
+			printCart(cart);
 
 		} catch (Exception e) {
 			Assert.assertTrue(false);
@@ -133,5 +165,19 @@ public class CartRuleTest {
 		
 	}
 
+	private void printCart(Cart cart) {
+		for (CartItem item : cart.getItems().values()) {
+			System.out.println(String.format("item: %s, %s", item.getId(), item.getTotalPrice("std")));
+		}
+		System.out.println(String.format("total: %s", cart.getTotal().getGross()));
+		System.out.println(String.format("discount: %s", cart.getDiscount().getGross()));
+		System.out.println(String.format("shipping: %s", cart.getShipping()));
+	}
 
+	private void printMessages(Messages messages) {
+		for (Message message : messages.getAll()) {
+			System.out.println(message);
+		}
+	}
+	
 }

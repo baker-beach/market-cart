@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.bakerbeach.market.cart.api.model.CartRule;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
 import com.bakerbeach.market.cart.coupon.CouponStore;
@@ -500,6 +502,21 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	public void unsetRuleUse(ShopContext context, Cart cart, Customer customer, String string) {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public Message checkCartRule(String key, CartRule rule, Date date, Customer customer) {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public void addCodeRule(Cart cart, String key, CartRule rule) {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public Messages checkCartRules(Cart cart, Customer customer, Date date) {
 		throw new RuntimeException("not implemented");
 	}
 

@@ -14,7 +14,9 @@
 				<bean class="com.bakerbeach.market.cart.rules.PumpkinFreeShippingRuleImpl">
 					<property name="intention" value="DISCOUNT_ON_SHIPPING" />
 					<property name="id" value="freeShipping" />
-<!-- 					<property name="codesStr" value="fs0001,fs0002,fs003" /> -->
+					<property name="codesStr">
+						<value><![CDATA[foo,K&J2017]]></value>
+					</property>
 					<property name="maxIndividualUse" value="2" />
 					<property name="start">
 						<bean factory-bean="dateFormat" factory-method="parse">

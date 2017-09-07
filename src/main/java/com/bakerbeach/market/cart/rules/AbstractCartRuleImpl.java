@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bakerbeach.market.cart.api.model.CartRule;
-import com.bakerbeach.market.cart.api.model.CartRuleResult;
 
 public abstract class AbstractCartRuleImpl implements CartRule {
 	protected static final Logger log = LoggerFactory.getLogger(AbstractCartRuleImpl.class);
@@ -20,6 +19,7 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	protected Date start = new GregorianCalendar(2017, 0, 1).getTime();
 	protected Date end = new GregorianCalendar(2021, 0, 1).getTime();
 	protected Intention intention;
+	protected Status status;
 	protected Set<String> codes = new HashSet<>();
 	protected Integer maxIndividualUse;
 	protected Set<String> emails = new HashSet<String>();
@@ -89,6 +89,16 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	@Override
 	public void setIntention(Intention intention) {
 		this.intention = intention;
+	}
+	
+	@Override
+	public Status getStatus() {
+		return status;
+	}
+	
+	@Override
+	public void setStatus(Status status) {
+		this.status = status;
 	}
 
 	@Override
