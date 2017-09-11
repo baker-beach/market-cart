@@ -19,7 +19,7 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	protected Date start = new GregorianCalendar(2017, 0, 1).getTime();
 	protected Date end = new GregorianCalendar(2021, 0, 1).getTime();
 	protected Intention intention;
-	protected Status status;
+	protected Status status = Status.UNDEFINED;
 	protected Set<String> codes = new HashSet<>();
 	protected Integer maxIndividualUse;
 	protected Set<String> emails = new HashSet<String>();

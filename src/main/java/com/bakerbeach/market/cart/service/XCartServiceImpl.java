@@ -6,10 +6,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -392,6 +394,24 @@ public class XCartServiceImpl implements CartService {
 						CartItemQualifier.DISCOUNT, CartItemQualifier.RESOURCE, CartItemQualifier.SHIPPING));
 		cart.setTotal(total);
 
+		// removed failed coupon rules ---
+		if (cart instanceof CartRuleAware) {
+			CartRuleSet ruleSet = getCartRuleSet(cart);
+			if (ruleSet != null) {
+				Set<String> tbr = new HashSet<>();
+				for (Entry<String, CartRule> entry : ruleSet.getCodeRules().entrySet()) {
+					if (entry.getValue().getStatus().equals(CartRule.Status.FAILED)) {
+						tbr.add(entry.getKey());
+					}
+				}
+				
+				for (String key : tbr) {
+					ruleSet.getCodeRules().remove(key);
+				}
+			}
+		}
+		
+		
 		// clear rule messages ---
 		if (cart instanceof CartRuleAware) {
 			((CartRuleAware) cart).getMessages().add(cartMessages);
