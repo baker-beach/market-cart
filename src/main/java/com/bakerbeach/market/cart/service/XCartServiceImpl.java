@@ -633,13 +633,32 @@ public class XCartServiceImpl implements CartService {
 	}
 	
 	@Override
-	public void addCodeRule( Cart cart, String key, CartRule rule) {
+	public void addCodeRule(Cart cart, String key, CartRule rule) {
 		CartRuleSet ruleSet = getCartRuleSet(cart);
 		if (ruleSet != null) {
-			ruleSet.put(key, rule);
+			ruleSet.addCodeRule(key, rule);
 		}		
 	}
-
+	
+	@Override
+	public void clearCodeRules(Cart cart) {
+		CartRuleSet ruleSet = getCartRuleSet(cart);
+		if (ruleSet != null) {
+			ruleSet.clearCodeRules();
+		}		
+	}
+	
+	
+	@Override
+	public Map<String, CartRule> getCodeRules(Cart cart) {
+		CartRuleSet ruleSet = getCartRuleSet(cart);
+		if (ruleSet != null) {
+			return ruleSet.getCodeRules();
+		}
+		
+		return null;
+	}
+	
 	@Override
 	public void setRuleUse(ShopContext context, Cart cart, Customer customer, String qualifier)
 			throws CartServiceException {
@@ -696,9 +715,11 @@ public class XCartServiceImpl implements CartService {
 				String key = entry.getKey();
 				CartRule rule = entry.getValue();
 
-				if (CartRule.Status.ENABLED.equals(rule.getStatus())) {
-					CartRuleResult result = rule.apply(cart, intention, context);
-					results.add(result);					
+				if (intention.equals(rule.getIntention())) {
+					if (CartRule.Status.ENABLED.equals(rule.getStatus())) {
+						CartRuleResult result = rule.apply(cart, intention, context);
+						results.add(result);					
+					}
 				}
 			}
 		}
@@ -706,6 +727,11 @@ public class XCartServiceImpl implements CartService {
 		return results;
 	}
 
+	@Override
+	public CartRule getCodeRuleInstance(String couponCode) {
+		return cartRuleStore.getCodeRuleInstance(couponCode);
+	}
+	
 	@Override
 	public Messages checkCartRules(Cart cart, Customer customer, Date date) {
 		Messages messages = new MessagesImpl();
@@ -766,7 +792,7 @@ public class XCartServiceImpl implements CartService {
 			for (String id : cartRuleStore.getCommonRuleIds()) {
 				if (!cartRuleSet.containsKey(id)) {
 					CartRule instance = cartRuleStore.getInstance(id);
-					cartRuleSet.put(id, instance);
+					cartRuleSet.addCommonRule(id, instance);
 				}
 			}
 

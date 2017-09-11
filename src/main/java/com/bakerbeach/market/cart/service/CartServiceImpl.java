@@ -520,4 +520,19 @@ public class CartServiceImpl implements CartService {
 		throw new RuntimeException("not implemented");
 	}
 
+	@Override
+	public CartRule getCodeRuleInstance(String couponCode) {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public void clearCodeRules(Cart cart) {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public Map<String, CartRule> getCodeRules(Cart cart) {
+		throw new RuntimeException("not implemented");
+	}
+
 }
