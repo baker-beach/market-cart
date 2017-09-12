@@ -16,7 +16,7 @@ public class DiscountOnGoodsRuleImpl extends AbstractCartRuleImpl {
 	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
 		CartRuleResult result = new SimpleCartRuleResult();
 
-		if (intention.equals(this.getIntention())) {
+		if (intentions.contains(intention)) {
 			result.getValues().put("total", new BigDecimal("-3.00"));
 			result.getMessages().add(new MessageImpl("discount-1", Message.TYPE_INFO, "discount",
 					Arrays.asList(Message.TAG_CART), Arrays.asList(new BigDecimal("-3.00"))));

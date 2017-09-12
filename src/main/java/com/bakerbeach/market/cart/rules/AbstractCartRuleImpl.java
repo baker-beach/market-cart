@@ -1,16 +1,20 @@
 package com.bakerbeach.market.cart.rules;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bakerbeach.market.cart.api.model.CartRule;
+import com.bakerbeach.market.commons.Message;
 
 public abstract class AbstractCartRuleImpl implements CartRule {
 	protected static final Logger log = LoggerFactory.getLogger(AbstractCartRuleImpl.class);
@@ -18,8 +22,8 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	protected String id;
 	protected Date start = new GregorianCalendar(2017, 0, 1).getTime();
 	protected Date end = new GregorianCalendar(2021, 0, 1).getTime();
-	protected Intention intention;
-	protected Status status = Status.UNDEFINED;
+	protected Collection<Intention> intentions = new ArrayList<>();
+	protected Status status = Status.ENABLED;
 	protected Set<String> codes = new HashSet<>();
 	protected Integer maxIndividualUse;
 	protected Set<String> emails = new HashSet<String>();
@@ -35,7 +39,7 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 			instance.setId(id);
 			instance.setStart(start);
 			instance.setEnd(end);
-			instance.setIntention(intention);
+			instance.setIntentions(intentions);
 			instance.setMaxIndividualUse(maxIndividualUse);
 			instance.setEmails(emails);
 			instance.setNewsletterSubscription(newsletterSubscription);
@@ -46,10 +50,6 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 			return null;
 		}
 	}
-
-//	protected abstract void addSuccessMessage(CartRuleResult result);
-//
-//	protected abstract void addErrorMessage(CartRuleResult result);
 
 	@Override
 	public String getId() {
@@ -82,15 +82,23 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	}
 
 	@Override
-	public Intention getIntention() {
-		return intention;
-	}
-
-	@Override
-	public void setIntention(Intention intention) {
-		this.intention = intention;
+	public Collection<Intention> getIntentions() {
+		return intentions;
 	}
 	
+	@Override
+	public void setIntentions(Collection<Intention> intentions) {
+		this.intentions = intentions;
+	}
+	
+	public void setIntentionsStr(String str) {
+		if (StringUtils.isNotBlank(str)) {
+			for (String i : Arrays.asList(str.split(","))) {
+				intentions.add(CartRule.Intention.valueOf(i));
+			}
+		}
+	}
+
 	@Override
 	public Status getStatus() {
 		return status;
@@ -173,5 +181,23 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	public void setIsUsed(boolean isUsed) {
 		this.isUsed = isUsed;
 	}
+	
+	@Override
+	public Message getDisabledMessage() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public Message getFailedMessage() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public Message getPassedMessage() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 }

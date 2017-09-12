@@ -39,12 +39,11 @@ public class AddItemRuleImpl extends AbstractCartRuleImpl {
 	}
 
 	protected void addErrorMessage(CartRuleResult result) {
-		// result.setMessage(new MessageImpl(Message.TYPE_INFO, "max rule use
-		// count", result.get("gtin")));
 	}
 
 	protected void addSuccessMessage(CartRuleResult result) {
-		result.getMessages().add(new MessageImpl(Message.TYPE_INFO, "extra item", null, result.get("gtin")));
+		result.getMessages().add(
+				new MessageImpl("rule-1", Message.TYPE_INFO, "extra item", null, Arrays.asList(result.get("gtin"))));
 	}
 
 }

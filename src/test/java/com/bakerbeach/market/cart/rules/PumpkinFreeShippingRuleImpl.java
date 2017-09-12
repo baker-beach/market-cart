@@ -17,7 +17,7 @@ public class PumpkinFreeShippingRuleImpl extends AbstractCartRuleImpl {
 	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
 		CartRuleResult result = new SimpleCartRuleResult();
 
-		if (intention.equals(this.getIntention())) {
+		if (intentions.contains(intention)) {
 			result.getValues().put("total", new BigDecimal("-3.95"));
 			result.getMessages().add(new MessageImpl("shipping", Message.TYPE_INFO, "shipping-true",
 					Arrays.asList(Message.TAG_CART), new ArrayList<Object>()));

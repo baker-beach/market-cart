@@ -116,8 +116,9 @@ public class CartServiceImpl implements CartService {
 			cartItem.setId(UUID.randomUUID().toString());
 			cart.add(cartItem);
 
-			messages.add(new MessageImpl(Message.TYPE_INFO, "Cart item successfully added.", Arrays.asList(Message.TAG_BOX), cartItem.getGtin(),
-					cartItem.getBrand(), cartItem.getQuantity()));
+			messages.add(new MessageImpl("add", Message.TYPE_INFO, "Cart item successfully added.",
+					Arrays.asList(Message.TAG_BOX),
+					Arrays.asList(cartItem.getGtin(), cartItem.getBrand(), cartItem.getQuantity())));
 			return messages;
 		} catch (CartServiceException e) {
 			return e.getMessages();
@@ -125,7 +126,8 @@ public class CartServiceImpl implements CartService {
 			log.error(ExceptionUtils.getStackTrace(e));
 
 			Messages messages = new MessagesImpl();
-			messages.add(new MessageImpl(Message.TYPE_ERROR, "cart.error.", Arrays.asList(Message.TAG_BOX)));
+			messages.add(
+					new MessageImpl("add", Message.TYPE_ERROR, "cart.error.", Arrays.asList(Message.TAG_BOX), null));
 			throw new CartServiceException(messages);
 		}
 	}
@@ -160,8 +162,8 @@ public class CartServiceImpl implements CartService {
 				}
 			}
 
-			messages.addGlobalMessage(
-					new MessageImpl(Message.TYPE_INFO, "Cart item successfully updated.", Arrays.asList(Message.TAG_BOX), item.getId()));
+			messages.addGlobalMessage(new MessageImpl("set", Message.TYPE_INFO, "Cart item successfully updated.",
+					Arrays.asList(Message.TAG_BOX), Arrays.asList(item.getId())));
 			return messages;
 		} catch (ServiceException e) {
 			return e.getMessages();
@@ -169,7 +171,8 @@ public class CartServiceImpl implements CartService {
 			log.error(ExceptionUtils.getStackTrace(e));
 
 			Messages messages = new MessagesImpl();
-			messages.addGlobalMessage(new MessageImpl(Message.TYPE_ERROR, "cart.error", Arrays.asList(Message.TAG_BOX)));
+			messages.addGlobalMessage(
+					new MessageImpl("set", Message.TYPE_ERROR, "cart.error", Arrays.asList(Message.TAG_BOX), null));
 			throw new CartServiceException(messages);
 		}
 	}
@@ -199,7 +202,7 @@ public class CartServiceImpl implements CartService {
 		for (CartItem item : cart.getCartItems()) {
 			calculateItem(item, shopContext.getCountryOfDelivery(), customer.getTaxCode());
 		}
- 
+
 		Total goods = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT, CartItemQualifier.VPRODUCT));
 
 		// TODO: set payment ---

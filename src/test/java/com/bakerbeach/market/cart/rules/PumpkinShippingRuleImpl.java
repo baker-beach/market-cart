@@ -19,7 +19,7 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 		CartRuleResult result = new SimpleCartRuleResult();
 
 		try {
-			if (intention.equals(this.getIntention())) {
+			if (intentions.contains(intention)) {
 				BigDecimal valueOfGoods = cart.getValueOfShippingGoods();
 
 				if (valueOfGoods.compareTo(new BigDecimal("39.00")) >= 0) {
