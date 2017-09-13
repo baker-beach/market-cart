@@ -690,7 +690,7 @@ public class XCartServiceImpl implements CartService {
 					String key = entry.getKey();
 					CartRule rule = entry.getValue();
 
-					if (CartRule.Status.ENABLED.equals(rule.getStatus())) {
+					if (CartRule.Status.PASSED.equals(rule.getStatus())) {
 						if (rule.getMaxIndividualUse() != null) {
 							cartRuleDao.setUse(key, customer.getId(), 1, rule.getMaxIndividualUse(), qualifier,
 									new Date());
