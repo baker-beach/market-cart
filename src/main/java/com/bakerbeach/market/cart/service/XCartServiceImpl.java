@@ -701,7 +701,7 @@ public class XCartServiceImpl implements CartService {
 			}
 		} catch (Exception e) {
 			log.info(ExceptionUtils.getMessage(e));
-			throw new CartServiceException(e.getMessage());
+			throw new CartServiceException();
 		}
 	}
 
