@@ -176,14 +176,20 @@ public class XCartImpl implements Cart, CartRuleAware {
 	}
 
 	@Override
+	public CartItem getNewItem() {
+		XCartItemImpl item = new XCartItemImpl();
+		return item;
+	}
+
+	@Override
 	public CartItem getNewItem(String code, BigDecimal quantity) {
 		XCartItemImpl item = new XCartItemImpl();
 		item.setCode(code);
 		item.setQuantity(quantity);
-
+		
 		return item;
 	}
-
+	
 	@Override
 	@Deprecated
 	public List<CartItem> getCartItems() {

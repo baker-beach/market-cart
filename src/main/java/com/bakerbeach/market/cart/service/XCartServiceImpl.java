@@ -147,17 +147,30 @@ public class XCartServiceImpl implements CartService {
 				throw new CartServiceException();
 
 			CartItem item = cart.findItemById(id);
-			if (item != null) {
+			
+			if (item != null && !item.isImmutable()) {
 				if (quantity.compareTo(BigDecimal.ZERO) < 1) {
 					cart.remove(item);
-				} else {
-					item.setQuantity(quantity);
+				} else if (quantity.compareTo(item.getMinQty()) > -1 && quantity.compareTo(item.getMaxQty()) < 1) {
+					item.setQuantity(quantity);						
 				}
-
+				
 				messages.addGlobalMessage(new MessageImpl("set", Message.TYPE_INFO, "successfully.updated.item",
 						Arrays.asList(Message.TAG_BOX),
 						Arrays.asList(item.getId(), item.getCode(), item.getQuantity())));
 			}
+			
+//			if (item != null && !item.isImmutable()) {
+//				if (quantity.compareTo(BigDecimal.ZERO) < 1) {
+//					cart.remove(item);
+//				} else {
+//					item.setQuantity(quantity);
+//				}
+//
+//				messages.addGlobalMessage(new MessageImpl("set", Message.TYPE_INFO, "successfully.updated.item",
+//						Arrays.asList(Message.TAG_BOX),
+//						Arrays.asList(item.getId(), item.getCode(), item.getQuantity())));
+//			}
 
 			return messages;
 		} catch (CartServiceException e) {
@@ -242,6 +255,19 @@ public class XCartServiceImpl implements CartService {
 				cartMessages.add(getRuleResultsMessages(ruleResults, Arrays.asList("cart")));
 
 				for (CartRuleResult ruleResult : ruleResults) {
+					if (ruleResult.containsKey("newCartItem")) {
+						CartItem item = (CartItem) ruleResult.get("newCartItem");
+						
+						item.getTitle().put("title1", translationService.getMessage("product.cart.title1", "text",
+								item.getCode(), null, "product.cart.title1", shopContext.getCurrentLocale()));
+						item.getTitle().put("title2", translationService.getMessage("product.cart.title2", "text",
+								item.getCode(), null, "product.cart.title2", shopContext.getCurrentLocale()));
+						item.getTitle().put("title3", translationService.getMessage("product.cart.title3", "text",
+								item.getCode(), null, "product.cart.title3", shopContext.getCurrentLocale()));
+						
+						cart.set(item);
+					}
+					/*					
 					if (ruleResult.containsKey("gtin") && ruleResult.containsKey("quantity")
 							&& ruleResult.containsKey("stdUnitPrice")) {
 						String gtin = (String) ruleResult.get("gtin");
@@ -254,6 +280,7 @@ public class XCartServiceImpl implements CartService {
 								true, true, stdUnitPrice, shopContext);
 						cart.set(item);
 					}
+					*/
 				}
 			}
 		} catch (Exception e) {

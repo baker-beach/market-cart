@@ -11,7 +11,23 @@
 	<bean id="cartRuleStore" class="com.bakerbeach.market.cart.rules.SimpleCartRuleStore">
 		<property name="rules">
 			<list value-type="com.bakerbeach.market.cart.api.model.CartRule">
-				<bean class="com.bakerbeach.market.cart.rules.PumpkinFreeShippingRuleImpl">
+			
+				<bean class="com.bakerbeach.market.cart.rules.FreePouchRuleImpl">
+					<property name="intentionsStr" value="LINE_CHANGES" />
+					<property name="id" value="freePouch" />
+					<property name="start">
+						<bean factory-bean="dateFormat" factory-method="parse">
+							<constructor-arg value="01.09.2017 00:00" />
+						</bean>
+					</property>
+				</bean>
+			
+				<!--  
+				<bean class="com.bakerbeach.market.cart.rules.FreePouchRuleImpl">
+					<property name="intention" value="LINE_CHANGES" />
+				</bean>				
+			
+				<bean class="com.bakerbeach.market.cart.rules.FreePouchRuleImpl">
 					<property name="intention" value="DISCOUNT_ON_SHIPPING" />
 					<property name="id" value="freeShipping" />
 					<property name="codesStr">
@@ -51,6 +67,7 @@
 					<property name="intention" value="LINE_CHANGES" />
 					<property name="maxIndividualUse" value="1" />
 				</bean>
+				-->
 				
 			</list>
 		</property>		

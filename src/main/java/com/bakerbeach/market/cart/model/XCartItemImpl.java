@@ -8,12 +8,13 @@ import java.util.Map;
 import org.mongodb.morphia.annotations.Transient;
 
 import com.bakerbeach.market.core.api.model.CartItem;
+import com.bakerbeach.market.core.api.model.CartItemQualifier;
 import com.bakerbeach.market.core.api.model.ProductType;
 import com.bakerbeach.market.core.api.model.TaxCode;
 
 public class XCartItemImpl implements CartItem {
 	protected String id;
-	protected String qualifier;
+	protected String qualifier = CartItemQualifier.PRODUCT;
 	protected String code;
 	protected String gtin;
 	protected String name;
@@ -25,7 +26,7 @@ public class XCartItemImpl implements CartItem {
 	protected Boolean isVolatile = false;
 	protected Boolean isImmutable = false;
 	protected Boolean isConfigurable = false;
-	protected TaxCode taxCode;
+	protected TaxCode taxCode = TaxCode.NORMAL;
 	protected BigDecimal taxPercent;
 	protected String size;
 	protected String color;

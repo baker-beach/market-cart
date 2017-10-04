@@ -66,7 +66,72 @@ public class CartRuleTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
+
+	@Test
+	public void freePouchRuleTest() {
+		try {
+			List<Cart> carts = xCartService.loadCart(context, customer, null, null);
+			Cart cart = carts.get(0);			
+			Assert.assertTrue(cart != null);			
+			
+			{
+				CartItem item = cart.getNewItem("gtin - 4260526590508", BigDecimal.ONE);
+				item.setCode("4260526590508");
+				item.setUnitPrice("std", new BigDecimal("10.00"));
+				item.setQualifier("PRODUCT");
+				item.setTaxCode(TaxCode.REDUCED);
+				item.setId(item.createId());
+				cart.add(item);				
+			}
+			
+			{
+				CartItem item = cart.getNewItem("gtin - 001", BigDecimal.ONE);
+				item.setCode("001");
+				item.setUnitPrice("std", new BigDecimal("10.00"));
+				item.setQualifier("PRODUCT");
+				item.setTaxCode(TaxCode.REDUCED);
+				item.setId("gtin - 001");
+				cart.add(item);				
+			}
+			
+			{
+				Messages messages = new MessagesImpl();
+				xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer, messages);
+				printMessages(messages);
+				printCart(cart);				
+			}
+
+			cart.remove("gtin - 001");
+			
+			{
+				Messages messages = new MessagesImpl();
+				xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer, messages);
+				printMessages(messages);
+				printCart(cart);				
+			}
+
+			{
+				CartItem item = cart.getNewItem("gtin - 001", BigDecimal.ONE);
+				item.setCode("001");
+				item.setUnitPrice("std", new BigDecimal("10.00"));
+				item.setQualifier("PRODUCT");
+				item.setTaxCode(TaxCode.REDUCED);
+				item.setId("gtin - 001");
+				cart.add(item);				
+			}
+
+			{
+				Messages messages = new MessagesImpl();
+				xCartService.calculate(CartRuleTest.context, cart, CartRuleTest.customer, messages);
+				printMessages(messages);
+				printCart(cart);				
+			}
+
+		} catch (Exception e) {
+			Assert.assertTrue(false);
+		}
+	}
+
 	@Test
 	public void codeRuleTest() {
 		try {

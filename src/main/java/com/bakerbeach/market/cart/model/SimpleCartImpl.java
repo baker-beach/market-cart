@@ -114,14 +114,20 @@ public class SimpleCartImpl implements Cart {
 	}
 
 	@Override
+	public CartItem getNewItem() {
+		CartItemImpl item = new CartItemImpl();
+		return item;
+	}
+
+	@Override
 	public CartItem getNewItem(String code, BigDecimal quantity) {
 		CartItemImpl item = new CartItemImpl();
 		item.setCode(code);
 		item.setQuantity(quantity);
-
+		
 		return item;
 	}
-
+	
 	@Override
 	public boolean remove(CartItem item) {
 		return cartItems.remove(item);
