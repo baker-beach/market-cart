@@ -321,6 +321,7 @@ public class XCartItemImpl implements CartItem {
 		builder.append("CartItem {");
 		builder.append("id: ").append(id).append(",");
 		builder.append("code: ").append(code).append(",");
+		builder.append("gtin: ").append(gtin).append(",");
 		builder.append("brand: ").append(brand).append(",");
 		builder.append("quantity: ").append(quantity).append(",");
 		builder.append("}");
