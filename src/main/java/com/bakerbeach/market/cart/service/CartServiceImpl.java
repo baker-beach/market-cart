@@ -223,11 +223,10 @@ public class CartServiceImpl implements CartService {
 		// lieferkosten ---
 		if (!cart.getCartItems().isEmpty()) {
 			try {
-				ShippingContext shippingContext = (ShippingContext) shopContext.getSessionData()
-						.get(ShippingContext.CONTEXT_KEY);
+				ShippingContext shippingContext = (ShippingContext)shopContext.getHttpServletRequest().getSession().getAttribute(ShippingContext.CONTEXT_KEY);
 				if (shippingContext == null) {
 					shippingContext = shippingService.createShippingContext(shopContext, customer, cart);
-					shopContext.getSessionData().put(ShippingContext.CONTEXT_KEY, shippingContext);
+					shopContext.getHttpServletRequest().getSession().setAttribute(ShippingContext.CONTEXT_KEY,shippingContext);
 				}
 
 				if (shippingService.checkShippingContext(shopContext, shippingContext)) {

@@ -1,5 +1,6 @@
 package com.bakerbeach.market.cart.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -11,7 +12,7 @@ import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.ProductType;
 import com.bakerbeach.market.core.api.model.TaxCode;
 
-public class XCartItemImpl implements CartItem {
+public class XCartItemImpl implements CartItem, Serializable {
 	protected String id;
 	protected String qualifier;
 	protected String code;
@@ -437,7 +438,7 @@ public class XCartItemImpl implements CartItem {
 		this.maxQty = maxQty;
 	}
 
-	public static class OptionImpl implements Option {
+	public static class OptionImpl implements Option, Serializable {
 		private String code;
 		private String gtin;
 		private BigDecimal quantity;

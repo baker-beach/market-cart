@@ -1,5 +1,6 @@
 package com.bakerbeach.market.cart.rules;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.bakerbeach.market.cart.api.model.CartRule;
 import com.bakerbeach.market.commons.Message;
 
-public abstract class AbstractCartRuleImpl implements CartRule {
+public abstract class AbstractCartRuleImpl implements CartRule, Serializable {
 	protected static final Logger log = LoggerFactory.getLogger(AbstractCartRuleImpl.class);
 
 	protected String id;

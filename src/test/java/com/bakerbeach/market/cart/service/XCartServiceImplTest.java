@@ -5,6 +5,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -220,12 +223,6 @@ public class XCartServiceImplTest {
 			}
 			
 			@Override
-			public void setData(Map<String, Object> data) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
 			public void setCurrentPriceGroup(String currentPriceGroup) {
 				// TODO Auto-generated method stub
 				
@@ -268,12 +265,6 @@ public class XCartServiceImplTest {
 			}
 			
 			@Override
-			public Boolean isCurrencySymbolAtFront() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
 			public boolean isCountryValid(String countryCode) {
 				// TODO Auto-generated method stub
 				return false;
@@ -310,12 +301,6 @@ public class XCartServiceImplTest {
 			
 			@Override
 			public Address getShippingAddress() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public Map<String, Object> getSessionData() {
 				// TODO Auto-generated method stub
 				return null;
 			}
@@ -477,12 +462,6 @@ public class XCartServiceImplTest {
 			}
 			
 			@Override
-			public Map<String, Object> getData() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
 			public String getCurrentPriceGroup() {
 				// TODO Auto-generated method stub
 				return null;
@@ -496,18 +475,6 @@ public class XCartServiceImplTest {
 			
 			@Override
 			public Currency getCurrentCurrency() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public String getCurrencySymbol() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			@Override
-			public String getCurrency() {
 				// TODO Auto-generated method stub
 				return null;
 			}
@@ -541,12 +508,25 @@ public class XCartServiceImplTest {
 				// TODO Auto-generated method stub
 				return null;
 			}
-			
+
+			@Override
+			public HttpServletRequest getHttpServletRequest() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public HttpServletResponse getHttpServletResponse() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
 			@Override
 			public String getApplicationPath() {
 				// TODO Auto-generated method stub
 				return null;
 			}
+			
 		};
   	}
 

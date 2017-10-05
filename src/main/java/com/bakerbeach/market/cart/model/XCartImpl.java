@@ -1,5 +1,6 @@
 package com.bakerbeach.market.cart.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,7 @@ import com.bakerbeach.market.core.api.model.Coupon;
 import com.bakerbeach.market.core.api.model.Total;
 
 @Entity(noClassnameStored = false)
-public class XCartImpl implements Cart, CartRuleAware {
+public class XCartImpl implements Cart, CartRuleAware, Serializable {
 
 	@Id
 	protected ObjectId id;

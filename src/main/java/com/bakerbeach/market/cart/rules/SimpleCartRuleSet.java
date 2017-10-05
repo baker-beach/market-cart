@@ -1,5 +1,6 @@
 package com.bakerbeach.market.cart.rules;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.Set;
 import com.bakerbeach.market.cart.api.model.CartRule;
 import com.bakerbeach.market.cart.api.model.CartRuleSet;
 
-public class SimpleCartRuleSet implements CartRuleSet {
+public class SimpleCartRuleSet implements CartRuleSet, Serializable {
 	private Map<String, CartRule> commonRules = new LinkedHashMap<>();
 	private Map<String, CartRule> codeRules = new LinkedHashMap<>();
 	// private Map<String, CartRule> rules = new LinkedHashMap<>();
