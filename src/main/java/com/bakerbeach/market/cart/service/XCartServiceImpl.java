@@ -1,6 +1,7 @@
 package com.bakerbeach.market.cart.service;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -319,8 +320,10 @@ public class XCartServiceImpl implements CartService {
 				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-1", goods, discount, shopContext);
 				if (CollectionUtils.isNotEmpty(discountItems)) {
 					for (CartItem discountItem : discountItems) {
-						calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
-						cart.set(discountItem);
+						if (discountItem.getTotalPrice("std") != BigDecimal.ZERO) {
+							calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+							cart.set(discountItem);
+						}
 					}
 				}
 			}
@@ -370,7 +373,7 @@ public class XCartServiceImpl implements CartService {
 
 				CartItem shippingDiscountItem = createItem(cart, "discount-shipping", CartItemQualifier.SHIPPING,
 						TaxCode.NORMAL, BigDecimal.ONE, true, true, true, shipping, shopContext);
-				if (shippingDiscountItem != null) {
+				if (shippingDiscountItem != null && shippingDiscountItem.getTotalPrice("std") != BigDecimal.ZERO) {
 					calculateItem(shippingDiscountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
 					cart.set(shippingDiscountItem);
 				}
@@ -405,8 +408,10 @@ public class XCartServiceImpl implements CartService {
 						shopContext);
 				if (CollectionUtils.isNotEmpty(discountItems)) {
 					for (CartItem discountItem : discountItems) {
-						calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
-						cart.set(discountItem);
+						if (discountItem.getTotalPrice("std") != BigDecimal.ZERO) {
+							calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+							cart.set(discountItem);
+						}
 					}
 				}
 			}
@@ -591,7 +596,7 @@ public class XCartServiceImpl implements CartService {
 	protected List<CartItem> getCartDiscountItems(Cart cart, String id, Total total, BigDecimal discount,
 			ShopContext shopContext) {
 		BigDecimal maxDiscount = total.getGross();
-		BigDecimal discountRest = discount.min(maxDiscount);
+		BigDecimal discountRest = discount.min(maxDiscount).setScale(2, BigDecimal.ROUND_HALF_UP);
 
 		List<CartItem> items = new ArrayList<CartItem>();
 		Collection<Line> lines = total.getLines().values();
