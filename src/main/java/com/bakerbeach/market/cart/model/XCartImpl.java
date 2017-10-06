@@ -43,7 +43,7 @@ public class XCartImpl implements Cart, CartRuleAware {
 	protected String status = "ACTIVE";
 	protected String name;
 	@Embedded
-	protected Map<String, CartItem> items = new LinkedHashMap<>();
+	protected LinkedHashMap<String, CartItem> items = new LinkedHashMap<>();
 	@Transient
 	protected Total total;
 	@Transient

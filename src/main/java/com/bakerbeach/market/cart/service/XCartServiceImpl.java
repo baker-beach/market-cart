@@ -17,6 +17,7 @@ import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import com.bakerbeach.market.cart.model.TotalImpl;
 import com.bakerbeach.market.cart.model.TotalImpl.LineImpl;
 import com.bakerbeach.market.cart.rules.CartRuleDao;
 import com.bakerbeach.market.cart.rules.SimpleCartRuleContextImpl;
+import com.bakerbeach.market.catalog.service.CatalogService;
 import com.bakerbeach.market.commons.Message;
 import com.bakerbeach.market.commons.MessageImpl;
 import com.bakerbeach.market.commons.Messages;
@@ -50,12 +52,16 @@ import com.bakerbeach.market.core.api.model.Total;
 import com.bakerbeach.market.core.api.model.Total.Line;
 import com.bakerbeach.market.tax.api.service.TaxService;
 import com.bakerbeach.market.translation.api.service.TranslationService;
+import com.bakerbeach.market.xcatalog.service.XCatalogService;
 
 public class XCartServiceImpl implements CartService {
 	protected static final Logger log = LoggerFactory.getLogger(XCartServiceImpl.class);
 	private static final BigDecimal HUNDRED = new BigDecimal(100);
 
 	protected Map<String, MongoCartDao> mongoCartDaos;
+	
+	@Autowired
+	private Datastore shopDatastore;
 
 	@Autowired
 	private TaxService taxService;
@@ -63,6 +69,9 @@ public class XCartServiceImpl implements CartService {
 	@Autowired
 	protected TranslationService translationService;
 
+	@Autowired
+	protected XCatalogService catalogService;
+	
 	@Autowired
 	public CartRuleStore cartRuleStore;
 
@@ -160,18 +169,6 @@ public class XCartServiceImpl implements CartService {
 						Arrays.asList(Message.TAG_BOX),
 						Arrays.asList(item.getId(), item.getCode(), item.getQuantity())));
 			}
-			
-//			if (item != null && !item.isImmutable()) {
-//				if (quantity.compareTo(BigDecimal.ZERO) < 1) {
-//					cart.remove(item);
-//				} else {
-//					item.setQuantity(quantity);
-//				}
-//
-//				messages.addGlobalMessage(new MessageImpl("set", Message.TYPE_INFO, "successfully.updated.item",
-//						Arrays.asList(Message.TAG_BOX),
-//						Arrays.asList(item.getId(), item.getCode(), item.getQuantity())));
-//			}
 
 			return messages;
 		} catch (CartServiceException e) {
@@ -249,6 +246,9 @@ public class XCartServiceImpl implements CartService {
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleContext context = new SimpleCartRuleContextImpl();
+				context.put("shopCode", shopContext.getShopCode());
+				context.put("catalogService", catalogService);
+				context.put("shopDatastore", shopDatastore);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
 				List<CartRuleResult> ruleResults = applyCartRules(cart, customer, Intention.LINE_CHANGES, context);
@@ -268,20 +268,6 @@ public class XCartServiceImpl implements CartService {
 						
 						cart.set(item);
 					}
-					/*					
-					if (ruleResult.containsKey("gtin") && ruleResult.containsKey("quantity")
-							&& ruleResult.containsKey("stdUnitPrice")) {
-						String gtin = (String) ruleResult.get("gtin");
-						String qualifier = (String) ruleResult.get("qualifier");
-						TaxCode taxCode = (TaxCode) ruleResult.get("taxCode");
-						BigDecimal quantity = (BigDecimal) ruleResult.get("quantity");
-						BigDecimal stdUnitPrice = (BigDecimal) ruleResult.get("stdUnitPrice");
-
-						CartItem item = createItem(cart, "discount-item-" + gtin, qualifier, taxCode, quantity, true,
-								true, true, stdUnitPrice, shopContext);
-						cart.set(item);
-					}
-					*/
 				}
 			}
 		} catch (Exception e) {
@@ -309,6 +295,9 @@ public class XCartServiceImpl implements CartService {
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleContext context = new SimpleCartRuleContextImpl();
+				context.put("shopCode", shopContext.getShopCode());
+				context.put("catalogService", catalogService);
+				context.put("shopDatastore", shopDatastore);
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
@@ -338,6 +327,9 @@ public class XCartServiceImpl implements CartService {
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleContext context = new SimpleCartRuleContextImpl();
+				context.put("shopCode", shopContext.getShopCode());
+				context.put("catalogService", catalogService);
+				context.put("shopDatastore", shopDatastore);
 				context.put("cart", cart);
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
@@ -362,6 +354,9 @@ public class XCartServiceImpl implements CartService {
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleContext context = new SimpleCartRuleContextImpl();
+				context.put("shopCode", shopContext.getShopCode());
+				context.put("catalogService", catalogService);
+				context.put("shopDatastore", shopDatastore);
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
@@ -395,6 +390,9 @@ public class XCartServiceImpl implements CartService {
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleContext context = new SimpleCartRuleContextImpl();
+				context.put("shopCode", shopContext.getShopCode());
+				context.put("catalogService", catalogService);
+				context.put("shopDatastore", shopDatastore);
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
