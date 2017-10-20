@@ -9,10 +9,20 @@ import com.bakerbeach.market.commons.Messages;
 import com.bakerbeach.market.commons.MessagesImpl;
 
 public class SimpleCartRuleResult implements CartRuleResult {
+	private String id;
 	private Map<String, Object> map = new HashMap<>();
 	private Map<String, BigDecimal> values = new HashMap<String, BigDecimal>();
 	private Messages messages = new MessagesImpl();
 
+	public SimpleCartRuleResult(String id) {
+		this.id = id;
+	}
+	
+	@Override
+	public String getId() {
+		return id;
+	}
+		
 	@Override
 	public boolean containsKey(Object key) {
 		return map.containsKey(key);

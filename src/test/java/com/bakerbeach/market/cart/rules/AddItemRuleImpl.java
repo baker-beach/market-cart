@@ -17,7 +17,7 @@ public class AddItemRuleImpl extends AbstractCartRuleImpl {
 
 	@Override
 	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
-		CartRuleResult result = new SimpleCartRuleResult();
+		CartRuleResult result = new SimpleCartRuleResult("addItemTest");
 
 		try {
 			if (useCount < 1) {

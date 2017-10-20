@@ -16,7 +16,7 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 
 	@Override
 	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
-		CartRuleResult result = new SimpleCartRuleResult();
+		CartRuleResult result = new SimpleCartRuleResult("shippingRuleTest");
 
 		try {
 			if (intentions.contains(intention)) {

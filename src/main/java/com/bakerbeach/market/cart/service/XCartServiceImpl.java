@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -259,11 +260,11 @@ public class XCartServiceImpl implements CartService {
 					if (ruleResult.containsKey("newCartItem")) {
 						CartItem item = (CartItem) ruleResult.get("newCartItem");
 						
-						item.getTitle().put("title1", translationService.getMessage("product.cart.title1", "text",
+						item.getTitle().put("title1", translationService.getMessage("product.cart.title.1", "text",
 								item.getCode(), null, "product.cart.title1", shopContext.getCurrentLocale()));
-						item.getTitle().put("title2", translationService.getMessage("product.cart.title2", "text",
+						item.getTitle().put("title2", translationService.getMessage("product.cart.title.2", "text",
 								item.getCode(), null, "product.cart.title2", shopContext.getCurrentLocale()));
-						item.getTitle().put("title3", translationService.getMessage("product.cart.title3", "text",
+						item.getTitle().put("title3", translationService.getMessage("product.cart.title.3", "text",
 								item.getCode(), null, "product.cart.title3", shopContext.getCurrentLocale()));
 						
 						cart.set(item);
@@ -755,6 +756,26 @@ public class XCartServiceImpl implements CartService {
 		}
 	}
 
+	private void applyCartRules(Cart cart, Customer customer, Intention intention, CartRuleContext context,
+			Map<String, CartRuleResult> results) {
+
+		CartRuleSet ruleSet = getCartRuleSet(cart);
+		if (ruleSet != null) {
+			for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
+				String key = entry.getKey();
+				CartRule rule = entry.getValue();
+
+				if (rule.getIntentions().contains(intention)) {
+					if (!CartRule.Status.DISABLED.equals(rule.getStatus())) {
+						CartRuleResult result = rule.apply(cart, intention, context);
+						results.put(result.getId(), result);
+					}
+				}
+			}
+		}
+
+	}
+	
 	private List<CartRuleResult> applyCartRules(Cart cart, Customer customer, Intention intention,
 			CartRuleContext context) {
 		List<CartRuleResult> results = new ArrayList<>();

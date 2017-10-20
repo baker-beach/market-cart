@@ -13,7 +13,7 @@ public class DiscountOnGoodsAndServicesRuleImpl extends AbstractCartRuleImpl {
 
 	@Override
 	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
-		CartRuleResult result = new SimpleCartRuleResult();
+		CartRuleResult result = new SimpleCartRuleResult("discountOnGoodsAndServicesTest");
 
 		if (intentions.contains(intention)) {
 			result.getValues().put("total", new BigDecimal("-3.00"));
