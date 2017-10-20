@@ -757,7 +757,6 @@ public class XCartServiceImpl implements CartService {
 
 	private void applyCartRules(Cart cart, Customer customer, Intention intention, CartRuleContext context,
 			Map<String, CartRuleResult> results) {
-
 		CartRuleSet ruleSet = getCartRuleSet(cart);
 		if (ruleSet != null) {
 			for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
@@ -772,33 +771,8 @@ public class XCartServiceImpl implements CartService {
 				}
 			}
 		}
-
 	}
 	
-	private List<CartRuleResult> _applyCartRules(Cart cart, Customer customer, Intention intention,
-			CartRuleContext context) {
-		List<CartRuleResult> results = new ArrayList<>();
-
-		Date now = new Date();
-
-		CartRuleSet ruleSet = getCartRuleSet(cart);
-		if (ruleSet != null) {
-			for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
-				String key = entry.getKey();
-				CartRule rule = entry.getValue();
-
-				if (rule.getIntentions().contains(intention)) {
-					if (!CartRule.Status.DISABLED.equals(rule.getStatus())) {
-						CartRuleResult result = rule.apply(cart, intention, context);
-						results.add(result);
-					}
-				}
-			}
-		}
-
-		return results;
-	}
-
 	@Override
 	public CartRule getCodeRuleInstance(String couponCode) {
 		return cartRuleStore.getCodeRuleInstance(couponCode);
