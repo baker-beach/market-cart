@@ -3,6 +3,7 @@ package com.bakerbeach.market.cart.rules;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -18,7 +19,7 @@ import com.bakerbeach.market.core.api.model.TaxCode;
 public class FreePouchRuleImpl extends AbstractCartRuleImpl {
 
 	@Override
-	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
+	public void apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
 		CartRuleResult result = new SimpleCartRuleResult("freePouchTest");
 		BigDecimal valueOfGoods = BigDecimal.ZERO; // = cart.getValueOfGoods();
 
@@ -57,7 +58,7 @@ public class FreePouchRuleImpl extends AbstractCartRuleImpl {
 			cart.remove("std-free-pouch");
 		}
 
-		return result;
+		results.put(result.getId(), result);
 	}
 
 	@Override

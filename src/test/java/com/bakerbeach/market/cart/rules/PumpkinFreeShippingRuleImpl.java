@@ -3,6 +3,7 @@ package com.bakerbeach.market.cart.rules;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleResult;
@@ -14,7 +15,7 @@ public class PumpkinFreeShippingRuleImpl extends AbstractCartRuleImpl {
 	private BigDecimal limit = BigDecimal.ZERO;
 
 	@Override
-	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
+	public void apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
 		CartRuleResult result = new SimpleCartRuleResult("pumpkinFreeShippingTest");
 
 		if (intentions.contains(intention)) {
@@ -23,7 +24,7 @@ public class PumpkinFreeShippingRuleImpl extends AbstractCartRuleImpl {
 					Arrays.asList(Message.TAG_CART), new ArrayList<Object>()));
 		}
 
-		return result;
+		results.put(result.getId(), result);
 	}
 
 	public BigDecimal getLimit() {

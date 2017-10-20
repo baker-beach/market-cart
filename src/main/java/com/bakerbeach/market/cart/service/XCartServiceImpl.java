@@ -765,8 +765,7 @@ public class XCartServiceImpl implements CartService {
 
 				if (rule.getIntentions().contains(intention)) {
 					if (!CartRule.Status.DISABLED.equals(rule.getStatus())) {
-						CartRuleResult result = rule.apply(cart, intention, context);
-						results.put(result.getId(), result);
+						rule.apply(cart, intention, context, results);
 					}
 				}
 			}

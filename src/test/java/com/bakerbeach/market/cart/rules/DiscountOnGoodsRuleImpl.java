@@ -2,6 +2,7 @@ package com.bakerbeach.market.cart.rules;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Map;
 
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleResult;
@@ -13,7 +14,7 @@ public class DiscountOnGoodsRuleImpl extends AbstractCartRuleImpl {
 	private BigDecimal limit = BigDecimal.ZERO;
 
 	@Override
-	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
+	public void apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
 		CartRuleResult result = new SimpleCartRuleResult("discountOnGoodsTest");
 
 		if (intentions.contains(intention)) {
@@ -22,7 +23,7 @@ public class DiscountOnGoodsRuleImpl extends AbstractCartRuleImpl {
 					Arrays.asList(Message.TAG_CART), Arrays.asList(new BigDecimal("-3.00"))));
 		}
 
-		return result;
+		results.put(result.getId(), result);
 	}
 
 	public BigDecimal getLimit() {

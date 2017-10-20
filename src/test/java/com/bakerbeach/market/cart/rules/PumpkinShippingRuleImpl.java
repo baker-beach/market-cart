@@ -2,6 +2,7 @@ package com.bakerbeach.market.cart.rules;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -15,7 +16,7 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 	private BigDecimal limit = BigDecimal.ZERO;
 
 	@Override
-	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context) {
+	public void apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
 		CartRuleResult result = new SimpleCartRuleResult("shippingRuleTest");
 
 		try {
@@ -33,7 +34,7 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 			log.error(ExceptionUtils.getStackTrace(e));
 		}
 
-		return result;
+		results.put(result.getId(), result);
 	}
 
 	public BigDecimal getLimit() {
