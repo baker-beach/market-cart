@@ -256,7 +256,7 @@ public class XCartServiceImpl implements CartService {
 				Map<String, CartRuleResult> currentRuleResults = applyCartRules(cart, customer, Intention.LINE_CHANGES,
 						context, ruleResults);
 
-				for (CartRuleResult ruleResult : ruleResults.values()) {
+				for (CartRuleResult ruleResult : currentRuleResults.values()) {
 					if (ruleResult.containsKey("newCartItem")) {
 						CartItem item = (CartItem) ruleResult.get("newCartItem");
 
