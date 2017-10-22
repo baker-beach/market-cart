@@ -19,7 +19,7 @@ import com.bakerbeach.market.core.api.model.TaxCode;
 public class FreePouchRuleImpl extends AbstractCartRuleImpl {
 
 	@Override
-	public void apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
+	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
 		CartRuleResult result = new SimpleCartRuleResult("freePouchTest");
 		BigDecimal valueOfGoods = BigDecimal.ZERO; // = cart.getValueOfGoods();
 
@@ -58,7 +58,7 @@ public class FreePouchRuleImpl extends AbstractCartRuleImpl {
 			cart.remove("std-free-pouch");
 		}
 
-		results.put(result.getId(), result);
+		return result;
 	}
 
 	@Override

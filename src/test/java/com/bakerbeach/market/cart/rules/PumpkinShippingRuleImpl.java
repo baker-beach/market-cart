@@ -16,7 +16,7 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 	private BigDecimal limit = BigDecimal.ZERO;
 
 	@Override
-	public void apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
+	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
 		CartRuleResult result = new SimpleCartRuleResult("shippingRuleTest");
 
 		try {
@@ -34,7 +34,7 @@ public class PumpkinShippingRuleImpl extends AbstractCartRuleImpl {
 			log.error(ExceptionUtils.getStackTrace(e));
 		}
 
-		results.put(result.getId(), result);
+		return result;
 	}
 
 	public BigDecimal getLimit() {

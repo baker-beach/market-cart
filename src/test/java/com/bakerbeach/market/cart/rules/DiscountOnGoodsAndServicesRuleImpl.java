@@ -13,7 +13,7 @@ import com.bakerbeach.market.core.api.model.Cart;
 public class DiscountOnGoodsAndServicesRuleImpl extends AbstractCartRuleImpl {
 
 	@Override
-	public void apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
+	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
 		CartRuleResult result = new SimpleCartRuleResult("discountOnGoodsAndServicesTest");
 
 		if (intentions.contains(intention)) {
@@ -22,7 +22,7 @@ public class DiscountOnGoodsAndServicesRuleImpl extends AbstractCartRuleImpl {
 					Arrays.asList(Message.TAG_BOX), Arrays.asList(new BigDecimal("-3.00"))));
 		}
 
-		results.put(result.getId(), result);
+		return result;
 	}
 
 }

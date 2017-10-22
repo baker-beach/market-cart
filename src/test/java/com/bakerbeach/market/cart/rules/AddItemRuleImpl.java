@@ -17,7 +17,7 @@ import com.bakerbeach.market.core.api.model.TaxCode;
 public class AddItemRuleImpl extends AbstractCartRuleImpl {
 
 	@Override
-	public void apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
+	public CartRuleResult apply(Cart cart, Intention intention, CartRuleContext context, Map<String, CartRuleResult> results) {
 		CartRuleResult result = new SimpleCartRuleResult("addItemTest");
 
 		try {
@@ -36,7 +36,7 @@ public class AddItemRuleImpl extends AbstractCartRuleImpl {
 			log.error(ExceptionUtils.getStackTrace(e));
 		}
 
-		results.put(result.getId(), result);
+		return result;
 	}
 
 	protected void addErrorMessage(CartRuleResult result) {
