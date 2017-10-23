@@ -261,11 +261,11 @@ public class XCartServiceImpl implements CartService {
 						CartItem item = (CartItem) ruleResult.get("newCartItem");
 
 						item.getTitle().put("title1", translationService.getMessage("product.cart.title.1", "text",
-								item.getCode(), null, "product.cart.title1", shopContext.getCurrentLocale()));
+								item.getCode(), null, "product.cart.title.1", shopContext.getCurrentLocale()));
 						item.getTitle().put("title2", translationService.getMessage("product.cart.title.2", "text",
-								item.getCode(), null, "product.cart.title2", shopContext.getCurrentLocale()));
+								item.getCode(), null, "product.cart.title.2", shopContext.getCurrentLocale()));
 						item.getTitle().put("title3", translationService.getMessage("product.cart.title.3", "text",
-								item.getCode(), null, "product.cart.title3", shopContext.getCurrentLocale()));
+								item.getCode(), null, "product.cart.title.3", shopContext.getCurrentLocale()));
 
 						cart.set(item);
 					}
@@ -313,8 +313,8 @@ public class XCartServiceImpl implements CartService {
 				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-1", goods, discount, shopContext);
 				if (CollectionUtils.isNotEmpty(discountItems)) {
 					for (CartItem discountItem : discountItems) {
-						if (discountItem.getTotalPrice("std") != BigDecimal.ZERO) {
-							calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+						calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+						if (discountItem.getTotalPrice("std") != null && BigDecimal.ZERO.compareTo(discountItem.getTotalPrice("std")) != 0) {
 							cart.set(discountItem);
 						}
 					}
@@ -377,8 +377,8 @@ public class XCartServiceImpl implements CartService {
 
 				CartItem shippingDiscountItem = createItem(cart, "discount-shipping", CartItemQualifier.SHIPPING,
 						TaxCode.NORMAL, BigDecimal.ONE, true, true, true, shipping, shopContext);
-				if (shippingDiscountItem != null && shippingDiscountItem.getTotalPrice("std") != BigDecimal.ZERO) {
-					calculateItem(shippingDiscountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+				calculateItem(shippingDiscountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+				if (shippingDiscountItem.getTotalPrice("std") != null && BigDecimal.ZERO.compareTo(shippingDiscountItem.getTotalPrice("std")) != 0) {
 					cart.set(shippingDiscountItem);
 				}
 				
@@ -399,7 +399,7 @@ public class XCartServiceImpl implements CartService {
 		Total goodsAndServices = calculateTotal(cart, Arrays.asList(CartItemQualifier.PRODUCT,
 				CartItemQualifier.VPRODUCT, CartItemQualifier.SERVICE, CartItemQualifier.SHIPPING));
 
-		// global cart discount including shipping ans services ---
+		// global cart discount including shipping and services ---
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleContext context = new SimpleCartRuleContextImpl();
@@ -417,8 +417,8 @@ public class XCartServiceImpl implements CartService {
 						shopContext);
 				if (CollectionUtils.isNotEmpty(discountItems)) {
 					for (CartItem discountItem : discountItems) {
-						if (discountItem.getTotalPrice("std") != BigDecimal.ZERO) {
-							calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+						calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+						if (discountItem.getTotalPrice("std") != null && BigDecimal.ZERO.compareTo(discountItem.getTotalPrice("std")) != 0) {
 							cart.set(discountItem);
 						}
 					}
@@ -606,7 +606,7 @@ public class XCartServiceImpl implements CartService {
 		return mongoCartDaos.get(shopContext.getShopCode()).getNewCart();
 	}
 
-	protected List<CartItem> getCartDiscountItems(Cart cart, String id, Total total, BigDecimal discount,
+	protected List<CartItem> getCartDiscountItems(Cart cart, String _id, Total total, BigDecimal discount,
 			ShopContext shopContext) {
 		BigDecimal maxDiscount = total.getGross();
 		BigDecimal discountRest = discount.min(maxDiscount).setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -625,8 +625,9 @@ public class XCartServiceImpl implements CartService {
 				resourceGross = discountRest;
 			}
 
+			String id = _id + "-" + line.getTaxCode().name().toLowerCase();
 			CartItem item = cart.getNewItem(id, BigDecimal.ONE);
-			item.setId(id + "-" + line.getTaxCode().name().toLowerCase());
+			item.setId(id);
 			item.setQualifier(CartItemQualifier.DISCOUNT);
 			item.setIsVisible(true);
 			item.setIsVolatile(true);
