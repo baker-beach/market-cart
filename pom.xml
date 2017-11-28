@@ -10,7 +10,7 @@
 	<artifactId>market-cart</artifactId>
 	<name>market-cart</name>
 	<packaging>jar</packaging>
-	<version>3.0.8</version> 
+	<version>3.0.9</version> 
 	<dependencies>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>

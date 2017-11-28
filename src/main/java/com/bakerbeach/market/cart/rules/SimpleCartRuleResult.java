@@ -10,6 +10,7 @@ import com.bakerbeach.market.commons.MessagesImpl;
 
 public class SimpleCartRuleResult implements CartRuleResult {
 	private String id;
+	private String code = "default";
 	private Map<String, Object> map = new HashMap<>();
 	private Map<String, BigDecimal> values = new HashMap<String, BigDecimal>();
 	private Messages messages = new MessagesImpl();
@@ -21,6 +22,16 @@ public class SimpleCartRuleResult implements CartRuleResult {
 	@Override
 	public String getId() {
 		return id;
+	}
+	
+	@Override
+	public String getCode() {
+		return code;
+	}
+	
+	@Override
+	public void setCode(String code) {
+		this.code = code;
 	}
 		
 	@Override

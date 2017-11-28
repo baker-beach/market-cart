@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -142,6 +143,17 @@ public class XCartServiceImpl implements CartService {
 
 	protected void addCartItemPrecheck(ShopContext shopContext, Cart cart, CartItem newCartItem)
 			throws CartServiceException {
+	}
+
+	private void setCartItems(List<CartItem> discountItems, ShopContext shopContext, Cart cart, Customer customer) {
+		if (CollectionUtils.isNotEmpty(discountItems)) {
+			for (CartItem discountItem : discountItems) {
+				calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
+				if (discountItem.getTotalPrice("std") != null && BigDecimal.ZERO.compareTo(discountItem.getTotalPrice("std")) != 0) {
+					cart.set(discountItem);
+				}
+			}
+		}
 	}
 
 	@SuppressWarnings("unused")
@@ -311,14 +323,7 @@ public class XCartServiceImpl implements CartService {
 				BigDecimal discount = getRuleResultsTotal(currentRuleResults);
 
 				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-1", goods, discount, shopContext);
-				if (CollectionUtils.isNotEmpty(discountItems)) {
-					for (CartItem discountItem : discountItems) {
-						calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
-						if (discountItem.getTotalPrice("std") != null && BigDecimal.ZERO.compareTo(discountItem.getTotalPrice("std")) != 0) {
-							cart.set(discountItem);
-						}
-					}
-				}
+				setCartItems(discountItems, shopContext, cart, customer);
 
 				ruleResults.putAll(currentRuleResults);
 				messages.add(getRuleResultsMessages(currentRuleResults));
@@ -348,10 +353,7 @@ public class XCartServiceImpl implements CartService {
 
 				CartItem shippingItem = createItem(cart, "shipping", CartItemQualifier.SHIPPING, TaxCode.NORMAL,
 						BigDecimal.ONE, true, true, true, shipping, shopContext);
-				if (shippingItem != null) {
-					calculateItem(shippingItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
-					cart.set(shippingItem);
-				}
+				setCartItems(Arrays.asList(shippingItem), shopContext, cart, customer);
 
 				ruleResults.putAll(currentRuleResults);
 				messages.add(getRuleResultsMessages(currentRuleResults));
@@ -377,10 +379,7 @@ public class XCartServiceImpl implements CartService {
 
 				CartItem shippingDiscountItem = createItem(cart, "discount-shipping", CartItemQualifier.SHIPPING,
 						TaxCode.NORMAL, BigDecimal.ONE, true, true, true, shipping, shopContext);
-				calculateItem(shippingDiscountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
-				if (shippingDiscountItem.getTotalPrice("std") != null && BigDecimal.ZERO.compareTo(shippingDiscountItem.getTotalPrice("std")) != 0) {
-					cart.set(shippingDiscountItem);
-				}
+				setCartItems(Arrays.asList(shippingDiscountItem), shopContext, cart, customer);
 				
 				ruleResults.putAll(currentRuleResults);
 				messages.add(getRuleResultsMessages(currentRuleResults));
@@ -411,18 +410,9 @@ public class XCartServiceImpl implements CartService {
 
 				Map<String, CartRuleResult> currentRuleResults = applyCartRules(cart, customer,
 						Intention.DISCOUNT_ON_GOODS_AND_SERVICES, context, ruleResults);
-				BigDecimal discount = getRuleResultsTotal(currentRuleResults);
-
-				List<CartItem> discountItems = getCartDiscountItems(cart, "discount-2", goodsAndServices, discount,
-						shopContext);
-				if (CollectionUtils.isNotEmpty(discountItems)) {
-					for (CartItem discountItem : discountItems) {
-						calculateItem(discountItem, shopContext.getCountryOfDelivery(), customer.getTaxCode());
-						if (discountItem.getTotalPrice("std") != null && BigDecimal.ZERO.compareTo(discountItem.getTotalPrice("std")) != 0) {
-							cart.set(discountItem);
-						}
-					}
-				}
+				
+				List<CartItem> discountItems = getDiscountItems(currentRuleResults, cart, goodsAndServices, shopContext);
+				setCartItems(discountItems, shopContext, cart, customer);
 
 				ruleResults.putAll(currentRuleResults);
 				messages.add(getRuleResultsMessages(currentRuleResults));
@@ -604,6 +594,35 @@ public class XCartServiceImpl implements CartService {
 	@Override
 	public Cart getNewCart(ShopContext shopContext) throws CartServiceException {
 		return mongoCartDaos.get(shopContext.getShopCode()).getNewCart();
+	}
+	
+	private List<CartItem> getDiscountItems(Map<String, CartRuleResult> ruleResults, Cart cart,
+			Total total, ShopContext shopContext) {
+		
+		Map<String, BigDecimal> values = new HashMap<>();
+		if (MapUtils.isNotEmpty(ruleResults)) {
+			for (CartRuleResult result : ruleResults.values()) {
+				if (result.getValues().containsKey("total")) {
+					String code = result.getCode();
+					
+					if (!values.containsKey(code)) {
+						values.put(code, BigDecimal.ZERO);
+					}
+					BigDecimal value = values.get(code).add(result.getValues().get("total"));
+					values.put(code, value);
+				}
+			}
+		}
+		
+		List<CartItem> items = new ArrayList<CartItem>();
+		if (MapUtils.isNotEmpty(values)) {
+			for (String code : values.keySet()) {
+				BigDecimal value = values.get(code);
+				items.addAll(getCartDiscountItems(cart, code, total, value, shopContext));
+			}
+		}
+		
+		return items;
 	}
 
 	protected List<CartItem> getCartDiscountItems(Cart cart, String _id, Total total, BigDecimal discount,
