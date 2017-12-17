@@ -1,28 +1,28 @@
 package com.bakerbeach.market.cart.rules;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bakerbeach.market.cart.api.model.CartRule;
+import com.bakerbeach.market.cart.api.model.RuleInstance;
 import com.bakerbeach.market.commons.Message;
 
-public abstract class AbstractCartRuleImpl implements CartRule {
-	protected static final Logger log = LoggerFactory.getLogger(AbstractCartRuleImpl.class);
+public abstract class AbstractRuleInst implements RuleInstance {
+	protected static final Logger log = LoggerFactory.getLogger(AbstractRuleInst.class);
 
 	protected String id;
+	protected Type type;
 	protected Date start = new GregorianCalendar(2017, 0, 1).getTime();
 	protected Date end = new GregorianCalendar(2021, 0, 1).getTime();
-	protected Collection<Intention> intentions = new ArrayList<>();
+	private Map<String, Object> data = new LinkedHashMap<>();
+	protected List<Intention> intentions;
 	protected Status status = Status.ENABLED;
 	protected Set<String> codes = new HashSet<>();
 	protected Integer maxIndividualUse;
@@ -33,25 +33,6 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	Boolean isUsed = false;
 
 	@Override
-	public CartRule getInstance() {
-		try {
-			CartRule instance = this.getClass().newInstance();
-			instance.setId(id);
-			instance.setStart(start);
-			instance.setEnd(end);
-			instance.setIntentions(intentions);
-			instance.setMaxIndividualUse(maxIndividualUse);
-			instance.setEmails(emails);
-			instance.setNewsletterSubscription(newsletterSubscription);
-
-			return instance;
-		} catch (InstantiationException | IllegalAccessException e) {
-			log.error(ExceptionUtils.getStackTrace(e));
-			return null;
-		}
-	}
-
-	@Override
 	public String getId() {
 		return id;
 	}
@@ -59,6 +40,18 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	@Override
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	@Override
+	public Type getType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setType(Type type) {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
@@ -82,44 +75,23 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	}
 
 	@Override
-	public Collection<Intention> getIntentions() {
+	public List<Intention> getIntentions() {
 		return intentions;
 	}
-	
+
 	@Override
-	public void setIntentions(Collection<Intention> intentions) {
+	public void setIntentions(List<Intention> intentions) {
 		this.intentions = intentions;
-	}
-	
-	public void setIntentionsStr(String str) {
-		if (StringUtils.isNotBlank(str)) {
-			for (String i : Arrays.asList(str.split(","))) {
-				intentions.add(CartRule.Intention.valueOf(i));
-			}
-		}
 	}
 
 	@Override
 	public Status getStatus() {
 		return status;
 	}
-	
+
 	@Override
 	public void setStatus(Status status) {
 		this.status = status;
-	}
-
-	@Override
-	public Set<String> getCodes() {
-		return codes;
-	}
-
-	public void setCodes(Set<String> codes) {
-		this.codes = codes;
-	}
-
-	public void setCodesStr(String codesStr) {
-		codes.addAll(Arrays.asList(codesStr.split(",")));
 	}
 
 	@Override
@@ -140,6 +112,16 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	@Override
 	public void setEmails(Set<String> emails) {
 		this.emails = emails;
+	}
+
+	@Override
+	public Map<String, Object> getData() {
+		return data;
+	}
+
+	@Override
+	public void setData(Map<String, Object> data) {
+		this.data = data;
 	}
 
 	@Override
@@ -184,20 +166,17 @@ public abstract class AbstractCartRuleImpl implements CartRule {
 	
 	@Override
 	public Message getDisabledMessage() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	
 	@Override
 	public Message getFailedMessage() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Message getPassedMessage() {
-		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 }
