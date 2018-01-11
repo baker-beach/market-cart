@@ -10,48 +10,48 @@
 	<artifactId>market-cart</artifactId>
 	<name>market-cart</name>
 	<packaging>jar</packaging>
-	<version>3.0.9</version> 
+	<version>3.1.0</version> 
 	<dependencies>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-cart-api</artifactId>
-			<version>[3.0.6]</version>
+			<version>[3.1.0]</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-payment-api</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-inventory-api</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-catalog-api</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-shipping-api</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-shipping</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-tax-api</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-newsletter-api</artifactId>
-			<version>1.0.0</version>
+			<version>3.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
@@ -61,23 +61,23 @@
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-tax</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-customer</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-translation-api</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 		</dependency>		
 		<dependency>
 			<groupId>com.bakerbeach.market</groupId>
 			<artifactId>market-translation</artifactId>
-			<version>[3.0.0,3.1.0)</version>
+			<version>[3.1.0,3.2.0)</version>
 			<scope>test</scope>
 		</dependency>		
 	</dependencies>
