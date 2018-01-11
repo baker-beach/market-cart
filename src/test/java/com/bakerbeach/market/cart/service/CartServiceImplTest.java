@@ -20,6 +20,7 @@ import com.bakerbeach.market.cart.model.SimpleCartImpl;
 import com.bakerbeach.market.core.api.model.Cart;
 import com.bakerbeach.market.core.api.model.CartItem;
 import com.bakerbeach.market.core.api.model.Customer;
+import com.bakerbeach.market.core.api.model.ShopContext;
 import com.bakerbeach.market.customer.model.CustomerImpl;
 
 import junit.framework.Assert;
@@ -33,6 +34,7 @@ public class CartServiceImplTest {
 	private CartService cartService;
 
 	private static Customer customer;
+	private static ShopContext context;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -41,6 +43,8 @@ public class CartServiceImplTest {
 		customer.setEmail("foo@bar.de");
 
 		CartServiceImplTest.customer = customer;
+	
+		CartServiceImplTest.context = new TestShopContext();
 	}
 
 	@AfterClass
@@ -60,6 +64,7 @@ public class CartServiceImplTest {
 		try {
 			// create a new cart ----
 			final Cart cart = new SimpleCartImpl();
+			cart.setShopCode("TEST_SHOP");
 			cart.setCustomerId(customer.getId());
 			cart.setUpdatedBy(customer.getId());
 
@@ -74,12 +79,12 @@ public class CartServiceImplTest {
 			cartService.saveCart(customer, cart);
 						
 			// load by customer ---
-			List<Cart> carts = cartService.loadCart(null, customer, null, null);
+			List<Cart> carts = cartService.loadCart(context, customer, null, null);
 			Cart cart1 = carts.get(0);			
 			Assert.assertTrue("cart is null - not found", cart1 != null);
 			
 			// load same cart by id ---
-			Cart cart2 = cartService.loadCart(null, cart.getId());
+			Cart cart2 = cartService.loadCart(context, cart.getId());
 			Assert.assertTrue(cart2 != null);
 			Assert.assertTrue(cart1.equals(cart2));
 			

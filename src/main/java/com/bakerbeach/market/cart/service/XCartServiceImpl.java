@@ -24,12 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.bakerbeach.market.cart.api.model.CartRule;
-import com.bakerbeach.market.cart.api.model.CartRule.Intention;
 import com.bakerbeach.market.cart.api.model.CartRuleContext;
 import com.bakerbeach.market.cart.api.model.CartRuleResult;
 import com.bakerbeach.market.cart.api.model.CartRuleSet;
-import com.bakerbeach.market.cart.api.model.CartRuleStore;
+import com.bakerbeach.market.cart.api.model.Rule.Intention;
+import com.bakerbeach.market.cart.api.model.RuleInstance;
+import com.bakerbeach.market.cart.api.model.RuleStore;
 import com.bakerbeach.market.cart.api.service.CartRuleAware;
 import com.bakerbeach.market.cart.api.service.CartService;
 import com.bakerbeach.market.cart.api.service.CartServiceException;
@@ -74,7 +74,7 @@ public class XCartServiceImpl implements CartService {
 	protected XCatalogService catalogService;
 
 	@Autowired
-	public CartRuleStore cartRuleStore;
+	public RuleStore ruleStore;
 
 	@Autowired
 	private CartRuleDao cartRuleDao;
@@ -437,8 +437,8 @@ public class XCartServiceImpl implements CartService {
 			CartRuleSet ruleSet = getCartRuleSet(cart);
 			if (ruleSet != null) {
 				Set<String> tbr = new HashSet<>();
-				for (Entry<String, CartRule> entry : ruleSet.getCodeRules().entrySet()) {
-					if (entry.getValue().getStatus().equals(CartRule.Status.DISABLED)) {
+				for (Entry<String, RuleInstance> entry : ruleSet.getCodeRules().entrySet()) {
+					if (entry.getValue().getStatus().equals(RuleInstance.Status.DISABLED)) {
 						tbr.add(entry.getKey());
 					}
 				}
@@ -720,7 +720,7 @@ public class XCartServiceImpl implements CartService {
 	}
 
 	@Override
-	public void addCodeRule(Cart cart, String key, CartRule rule) {
+	public void addCodeRule(Cart cart, String key, RuleInstance rule) {
 		CartRuleSet ruleSet = getCartRuleSet(cart);
 		if (ruleSet != null) {
 			ruleSet.addCodeRule(key, rule);
@@ -736,7 +736,7 @@ public class XCartServiceImpl implements CartService {
 	}
 
 	@Override
-	public Map<String, CartRule> getCodeRules(Cart cart) {
+	public Map<String, RuleInstance> getCodeRules(Cart cart) {
 		CartRuleSet ruleSet = getCartRuleSet(cart);
 		if (ruleSet != null) {
 			return ruleSet.getCodeRules();
@@ -751,11 +751,11 @@ public class XCartServiceImpl implements CartService {
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleSet ruleSet = ((CartRuleAware) cart).getCartRuleSet();
-				for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
+				for (Entry<String, RuleInstance> entry : ruleSet.entrySet()) {
 					String key = entry.getKey();
-					CartRule rule = entry.getValue();
+					RuleInstance rule = entry.getValue();
 
-					if (CartRule.Status.PASSED.equals(rule.getStatus())) {
+					if (RuleInstance.Status.PASSED.equals(rule.getStatus())) {
 						if (rule.getMaxIndividualUse() != null) {
 							cartRuleDao.setUse(key, customer.getId(), 1, rule.getMaxIndividualUse(), qualifier,
 									new Date());
@@ -775,9 +775,9 @@ public class XCartServiceImpl implements CartService {
 		try {
 			if (cart instanceof CartRuleAware) {
 				CartRuleSet ruleSet = ((CartRuleAware) cart).getCartRuleSet();
-				for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
+				for (Entry<String, RuleInstance> entry : ruleSet.entrySet()) {
 					String key = entry.getKey();
-					CartRule rule = entry.getValue();
+					RuleInstance rule = entry.getValue();
 
 					if (rule.getMaxIndividualUse() != null && rule.getIsUsed()) {
 						cartRuleDao.unsetUse(key, customer.getId(), 1, qualifier, new Date());
@@ -796,11 +796,11 @@ public class XCartServiceImpl implements CartService {
 
 		CartRuleSet ruleSet = getCartRuleSet(cart);
 		if (ruleSet != null) {
-			for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
-				CartRule rule = entry.getValue();
+			for (Entry<String, RuleInstance> entry : ruleSet.entrySet()) {
+				RuleInstance rule = entry.getValue();
 
 				if (rule.getIntentions().contains(intention)) {
-					if (!CartRule.Status.DISABLED.equals(rule.getStatus())) {
+					if (!RuleInstance.Status.DISABLED.equals(rule.getStatus())) {
 						CartRuleResult result = rule.apply(cart, intention, context, results);
 						currentResults.put(result.getId(), result);
 					}
@@ -812,8 +812,8 @@ public class XCartServiceImpl implements CartService {
 	}
 
 	@Override
-	public CartRule getCodeRuleInstance(String couponCode) {
-		return cartRuleStore.getCodeRuleInstance(couponCode);
+	public RuleInstance getCodeRuleInstance(String code) {
+		return ruleStore.instanceByCode(code);
 	}
 
 	@Override
@@ -822,9 +822,9 @@ public class XCartServiceImpl implements CartService {
 
 		CartRuleSet ruleSet = getCartRuleSet(cart);
 		if (ruleSet != null) {
-			for (Entry<String, CartRule> entry : ruleSet.entrySet()) {
+			for (Entry<String, RuleInstance> entry : ruleSet.entrySet()) {
 				String key = entry.getKey();
-				CartRule rule = entry.getValue();
+				RuleInstance rule = entry.getValue();
 				messages.add(checkCartRule(key, rule, date, customer));
 			}
 		}
@@ -833,14 +833,14 @@ public class XCartServiceImpl implements CartService {
 	}
 
 	@Override
-	public Message checkCartRule(String key, CartRule rule, Date date, Customer customer) {
+	public Message checkCartRule(String key, RuleInstance rule, Date date, Customer customer) {
 		if (!date.before(rule.getEnd())) {
-			rule.setStatus(CartRule.Status.DISABLED);
+			rule.setStatus(RuleInstance.Status.DISABLED);
 			return rule.getDisabledMessage();
 		}
 
 		if (date.before(rule.getStart())) {
-			rule.setStatus(CartRule.Status.FAILED);
+			rule.setStatus(RuleInstance.Status.FAILED);
 			return rule.getFailedMessage();
 		}
 
@@ -851,7 +851,7 @@ public class XCartServiceImpl implements CartService {
 					rule.setCustomerId(customer.getId());
 				}
 				if (rule.getUseCount() >= rule.getMaxIndividualUse()) {
-					rule.setStatus(CartRule.Status.DISABLED);
+					rule.setStatus(RuleInstance.Status.DISABLED);
 					return rule.getDisabledMessage();
 				}
 			}
@@ -860,7 +860,7 @@ public class XCartServiceImpl implements CartService {
 		return null;
 	}
 
-	public Message __checkCartRule(String key, CartRule rule, Date date, Customer customer) {
+	public Message __checkCartRule(String key, RuleInstance rule, Date date, Customer customer) {
 		if (!date.before(rule.getStart()) && date.before(rule.getEnd())) {
 			if (rule.getMaxIndividualUse() != null) {
 				if (customer != null) {
@@ -871,27 +871,27 @@ public class XCartServiceImpl implements CartService {
 				}
 
 				if (rule.getMaxIndividualUse() > rule.getUseCount()) {
-					rule.setStatus(CartRule.Status.ENABLED);
+					rule.setStatus(RuleInstance.Status.ENABLED);
 					// TODO: get code,tags and args from rule implementation
 					return new MessageImpl(key, Message.TYPE_INFO, rule.getId(), Arrays.asList(Message.TAG_BOX),
-							Arrays.asList(CartRule.Status.ENABLED));
+							Arrays.asList(RuleInstance.Status.ENABLED));
 				} else {
-					rule.setStatus(CartRule.Status.DISABLED);
+					rule.setStatus(RuleInstance.Status.DISABLED);
 					// TODO: get code,tags and args from rule implementation
 					return new MessageImpl(key, Message.TYPE_INFO, rule.getId(), Arrays.asList(Message.TAG_BOX),
-							Arrays.asList(CartRule.Status.DISABLED));
+							Arrays.asList(RuleInstance.Status.DISABLED));
 				}
 			} else {
-				rule.setStatus(CartRule.Status.ENABLED);
+				rule.setStatus(RuleInstance.Status.ENABLED);
 				// TODO: get code,tags and args from rule implementation
 				return new MessageImpl(key, Message.TYPE_INFO, rule.getId(), Arrays.asList(Message.TAG_BOX),
-						Arrays.asList(CartRule.Status.ENABLED));
+						Arrays.asList(RuleInstance.Status.ENABLED));
 			}
 		} else {
-			rule.setStatus(CartRule.Status.DISABLED);
+			rule.setStatus(RuleInstance.Status.DISABLED);
 			// TODO: get code,tags and args from rule implementation
 			return new MessageImpl(key, Message.TYPE_INFO, rule.getId(), Arrays.asList(Message.TAG_BOX),
-					Arrays.asList(CartRule.Status.DISABLED));
+					Arrays.asList(RuleInstance.Status.DISABLED));
 		}
 	}
 
@@ -902,13 +902,16 @@ public class XCartServiceImpl implements CartService {
 	protected CartRuleSet getCartRuleSet(Cart cart) {
 		if (cart instanceof CartRuleAware) {
 			CartRuleSet cartRuleSet = ((CartRuleAware) cart).getCartRuleSet();
-
-			// TODO: add some caching
-			for (String id : cartRuleStore.getCommonRuleIds()) {
-				if (!cartRuleSet.containsKey(id)) {
-					CartRule instance = cartRuleStore.getInstance(id);
-					cartRuleSet.addCommonRule(id, instance);
-				}
+			
+			long offset = 1000 * 60 * 30;
+			long last = cartRuleSet.getUpdatedAt().getTime();
+			long now = new Date().getTime();
+						
+			if (now > last + offset) {
+				for (RuleInstance inst : ruleStore.commonInstances()) {
+					cartRuleSet.addCommonRule(inst.getId(), inst);
+					cartRuleSet.setUpdatedAt(new Date());
+				}				
 			}
 
 			return cartRuleSet;
