@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Property;
 
 import com.bakerbeach.market.cart.api.model.RuleTmpl;
 
@@ -16,6 +17,8 @@ public class RuleTmplImpl implements RuleTmpl {
 	@Id
 	private String id;
 	private Type type = Type.CODE;
+	@Property("shop_code")
+	private List<String> shopCode;
 	private List<Intention> intentions;
 	private Date start;
 	private Date end;
@@ -43,6 +46,16 @@ public class RuleTmplImpl implements RuleTmpl {
 	@Override
 	public void setType(Type type) {
 		this.type = type;
+	}
+	
+	@Override
+	public List<String> getShopCode() {
+		return shopCode;
+	}
+	
+	@Override
+	public void setShopCode(List<String> shopCode) {
+		this.shopCode = shopCode;
 	}
 
 	@Override

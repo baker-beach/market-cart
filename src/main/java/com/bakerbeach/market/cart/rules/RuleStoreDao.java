@@ -7,10 +7,10 @@ import com.bakerbeach.market.cart.api.model.RuleTmpl;
 
 public interface RuleStoreDao {
 
-	RuleTmplImpl ruleTmplById(String id);
+	RuleTmplImpl ruleTmplById(String shopCode, String id);
 
-	List<RuleTmpl> ruleTmplByType(Type type);
+	List<RuleTmpl> ruleTmplByType(String shopCode, Type type);
 
-	RuleMapping ruleMappingByCode(String code);
+	RuleMapping ruleMappingByCode(String shopCode, String code);
 
 }

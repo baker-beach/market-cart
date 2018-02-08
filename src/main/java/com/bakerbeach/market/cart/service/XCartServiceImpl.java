@@ -227,7 +227,7 @@ public class XCartServiceImpl implements CartService {
 
 		// check cart rules ---
 		if (cart instanceof CartRuleAware) {
-			checkCartRules(cart, customer, now);
+			checkCartRules(shopContext.getShopCode(), cart, customer, now);
 			// messages.add(checkCartRules(cart, customer, now));
 		}
 
@@ -265,7 +265,7 @@ public class XCartServiceImpl implements CartService {
 				context.put("shopDatastore", shopDatastore);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				Map<String, CartRuleResult> currentRuleResults = applyCartRules(cart, customer, Intention.LINE_CHANGES,
+				Map<String, CartRuleResult> currentRuleResults = applyCartRules(shopContext.getShopCode(), cart, customer, Intention.LINE_CHANGES,
 						context, ruleResults);
 
 				for (CartRuleResult ruleResult : currentRuleResults.values()) {
@@ -318,7 +318,7 @@ public class XCartServiceImpl implements CartService {
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				Map<String, CartRuleResult> currentRuleResults = applyCartRules(cart, customer,
+				Map<String, CartRuleResult> currentRuleResults = applyCartRules(shopContext.getShopCode(), cart, customer,
 						Intention.DISCOUNT_ON_GOODS, context, ruleResults);
 				BigDecimal discount = getRuleResultsTotal(currentRuleResults);
 
@@ -347,7 +347,7 @@ public class XCartServiceImpl implements CartService {
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				Map<String, CartRuleResult> currentRuleResults = applyCartRules(cart, customer, Intention.SHIPPING,
+				Map<String, CartRuleResult> currentRuleResults = applyCartRules(shopContext.getShopCode(), cart, customer, Intention.SHIPPING,
 						context, ruleResults);
 				BigDecimal shipping = getRuleResultsTotal(currentRuleResults);
 
@@ -373,7 +373,7 @@ public class XCartServiceImpl implements CartService {
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				Map<String, CartRuleResult> currentRuleResults = applyCartRules(cart, customer,
+				Map<String, CartRuleResult> currentRuleResults = applyCartRules(shopContext.getShopCode(), cart, customer,
 						Intention.DISCOUNT_ON_SHIPPING, context, ruleResults);
 				BigDecimal shipping = getRuleResultsTotal(currentRuleResults);
 
@@ -408,7 +408,7 @@ public class XCartServiceImpl implements CartService {
 				context.put("customer", customer);
 				context.put("shippingAddress", shopContext.getShippingAddress());
 
-				Map<String, CartRuleResult> currentRuleResults = applyCartRules(cart, customer,
+				Map<String, CartRuleResult> currentRuleResults = applyCartRules(shopContext.getShopCode(), cart, customer,
 						Intention.DISCOUNT_ON_GOODS_AND_SERVICES, context, ruleResults);
 				
 				List<CartItem> discountItems = getDiscountItems(currentRuleResults, cart, goodsAndServices, shopContext);
@@ -434,7 +434,7 @@ public class XCartServiceImpl implements CartService {
 
 		// removed failed coupon rules ---
 		if (cart instanceof CartRuleAware) {
-			CartRuleSet ruleSet = getCartRuleSet(cart);
+			CartRuleSet ruleSet = getCartRuleSet(shopContext.getShopCode(), cart);
 			if (ruleSet != null) {
 				Set<String> tbr = new HashSet<>();
 				for (Entry<String, RuleInstance> entry : ruleSet.getCodeRules().entrySet()) {
@@ -720,24 +720,24 @@ public class XCartServiceImpl implements CartService {
 	}
 
 	@Override
-	public void addCodeRule(Cart cart, String key, RuleInstance rule) {
-		CartRuleSet ruleSet = getCartRuleSet(cart);
+	public void addCodeRule(String shopCode, Cart cart, String key, RuleInstance rule) {
+		CartRuleSet ruleSet = getCartRuleSet(shopCode, cart);
 		if (ruleSet != null) {
 			ruleSet.addCodeRule(key, rule);
 		}
 	}
 
 	@Override
-	public void clearCodeRules(Cart cart) {
-		CartRuleSet ruleSet = getCartRuleSet(cart);
+	public void clearCodeRules(String shopCode, Cart cart) {
+		CartRuleSet ruleSet = getCartRuleSet(shopCode, cart);
 		if (ruleSet != null) {
 			ruleSet.clearCodeRules();
 		}
 	}
 
 	@Override
-	public Map<String, RuleInstance> getCodeRules(Cart cart) {
-		CartRuleSet ruleSet = getCartRuleSet(cart);
+	public Map<String, RuleInstance> getCodeRules(String shopCode, Cart cart) {
+		CartRuleSet ruleSet = getCartRuleSet(shopCode, cart);
 		if (ruleSet != null) {
 			return ruleSet.getCodeRules();
 		}
@@ -790,11 +790,11 @@ public class XCartServiceImpl implements CartService {
 		}
 	}
 
-	private Map<String, CartRuleResult> applyCartRules(Cart cart, Customer customer, Intention intention,
+	private Map<String, CartRuleResult> applyCartRules(String shopCode, Cart cart, Customer customer, Intention intention,
 			CartRuleContext context, Map<String, CartRuleResult> results) {
 		Map<String, CartRuleResult> currentResults = new LinkedHashMap<>();
 
-		CartRuleSet ruleSet = getCartRuleSet(cart);
+		CartRuleSet ruleSet = getCartRuleSet(shopCode, cart);
 		if (ruleSet != null) {
 			for (Entry<String, RuleInstance> entry : ruleSet.entrySet()) {
 				RuleInstance rule = entry.getValue();
@@ -812,15 +812,15 @@ public class XCartServiceImpl implements CartService {
 	}
 
 	@Override
-	public RuleInstance getCodeRuleInstance(String code) {
-		return ruleStore.instanceByCode(code);
+	public RuleInstance getCodeRuleInstance(String shopCode, String code) {
+		return ruleStore.instanceByCode(shopCode, code);
 	}
 
 	@Override
-	public Messages checkCartRules(Cart cart, Customer customer, Date date) {
+	public Messages checkCartRules(String shopCode, Cart cart, Customer customer, Date date) {
 		Messages messages = new MessagesImpl();
 
-		CartRuleSet ruleSet = getCartRuleSet(cart);
+		CartRuleSet ruleSet = getCartRuleSet(shopCode, cart);
 		if (ruleSet != null) {
 			for (Entry<String, RuleInstance> entry : ruleSet.entrySet()) {
 				String key = entry.getKey();
@@ -899,7 +899,7 @@ public class XCartServiceImpl implements CartService {
 		this.mongoCartDaos = mongoCartDaos;
 	}
 
-	protected CartRuleSet getCartRuleSet(Cart cart) {
+	protected CartRuleSet getCartRuleSet(String shopCode, Cart cart) {
 		if (cart instanceof CartRuleAware) {
 			CartRuleSet cartRuleSet = ((CartRuleAware) cart).getCartRuleSet();
 			
@@ -908,7 +908,7 @@ public class XCartServiceImpl implements CartService {
 			long now = new Date().getTime();
 						
 			if (now > last + offset) {
-				for (RuleInstance inst : ruleStore.commonInstances()) {
+				for (RuleInstance inst : ruleStore.commonInstances(shopCode)) {
 					cartRuleSet.addCommonRule(inst.getId(), inst);
 					cartRuleSet.setUpdatedAt(new Date());
 				}				

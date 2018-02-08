@@ -40,9 +40,9 @@ public class StdRuleStore implements RuleStore {
 	}
 
 	@Override
-	public RuleInstance instanceById(String id) {
+	public RuleInstance instanceById(String shopCode, String id) {
 		try {
-			RuleTmplImpl tmpl = ruleStoreDao.ruleTmplById(id);
+			RuleTmplImpl tmpl = ruleStoreDao.ruleTmplById(shopCode, id);
 			RuleInstance inst = getInstance(tmpl);
 			return inst;
 		} catch (Exception e) {
@@ -52,10 +52,10 @@ public class StdRuleStore implements RuleStore {
 	}
 
 	@Override
-	public RuleInstance instanceByCode(String code) {
+	public RuleInstance instanceByCode(String shopCode, String code) {
 		try {
-			RuleMapping mapping = ruleStoreDao.ruleMappingByCode(code);
-			RuleTmplImpl tmpl = ruleStoreDao.ruleTmplById(mapping.getRuleId());
+			RuleMapping mapping = ruleStoreDao.ruleMappingByCode(shopCode, code);
+			RuleTmplImpl tmpl = ruleStoreDao.ruleTmplById(shopCode, mapping.getRuleId());
 			RuleInstance inst = getInstance(tmpl);
 			return inst;
 		} catch (Exception e) {
@@ -65,9 +65,9 @@ public class StdRuleStore implements RuleStore {
 	}
 
 	@Override
-	public Collection<RuleInstance> commonInstances() {
+	public Collection<RuleInstance> commonInstances(String shopCode) {
 		Collection<RuleInstance> instances = new ArrayList<>();
-		List<RuleTmpl> templates = ruleStoreDao.ruleTmplByType(Type.COMMON);
+		List<RuleTmpl> templates = ruleStoreDao.ruleTmplByType(shopCode, Type.COMMON);
 		templates.forEach(t -> {
 			try {
 				instances.add(getInstance(t));

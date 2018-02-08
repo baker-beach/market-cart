@@ -76,9 +76,9 @@ public class CartRuleTest {
 	
 	@Test
 	public void testGetInstance() {
-		
-		RuleInstance rule = ruleStore.instanceById("shipping-1");
-		Collection<RuleInstance> commonRules = ruleStore.commonInstances();
+		String shopCode = "PUMPKIN_DE";
+		RuleInstance rule = ruleStore.instanceById(shopCode, "shipping-1");
+		Collection<RuleInstance> commonRules = ruleStore.commonInstances(shopCode);
 		
 		// cartRuleStore.getInstance("limango-10");		
 		
