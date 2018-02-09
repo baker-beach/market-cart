@@ -50,7 +50,12 @@ public class StdRuleStore implements RuleStore {
 			return null;
 		}
 	}
-
+	
+	@Override
+	public RuleInstance instanceById(String id) {
+		return instanceById(null, id);
+	}
+	
 	@Override
 	public RuleInstance instanceByCode(String shopCode, String code) {
 		try {
@@ -62,6 +67,11 @@ public class StdRuleStore implements RuleStore {
 			log.info(e.getMessage());
 			return null;
 		}
+	}
+
+	@Override
+	public RuleInstance instanceByCode(String code) {
+		return instanceByCode(null, code);
 	}
 
 	@Override
@@ -79,4 +89,8 @@ public class StdRuleStore implements RuleStore {
 		return instances;
 	}
 
+	@Override
+	public Collection<RuleInstance> commonInstances() {
+		return commonInstances(null);
+	}
 }

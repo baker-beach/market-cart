@@ -32,8 +32,12 @@ public class StdRuleStoreDao implements RuleStoreDao {
 	@Override
 	public RuleTmplImpl ruleTmplById(String shopCode, String id) {
 		Query<RuleTmplImpl> query = ((AdvancedDatastore) datastore)
-				.createQuery(ruleTmplCollectionName, RuleTmplImpl.class).field("shopCode").equal(shopCode).field("id")
-				.equal(id);
+				.createQuery(ruleTmplCollectionName, RuleTmplImpl.class);
+		if (shopCode != null) {
+			query.field("shopCode").equal(shopCode);
+		}
+		query.field("id").equal(id);
+		
 		RuleTmplImpl ruleTmpl = query.get();
 
 		return ruleTmpl;
@@ -44,8 +48,12 @@ public class StdRuleStoreDao implements RuleStoreDao {
 		List<RuleTmpl> list = new ArrayList<>();
 
 		Query<RuleTmplImpl> query = ((AdvancedDatastore) datastore)
-				.createQuery(ruleTmplCollectionName, RuleTmplImpl.class).field("shopCode").equal(shopCode).field("type")
-				.equal(type);
+				.createQuery(ruleTmplCollectionName, RuleTmplImpl.class);
+		if (shopCode != null) {
+			query.field("shopCode").equal(shopCode);
+		}
+		query.field("type").equal(type);
+		
 		query.forEach(t -> {
 			list.add(t);
 		});
@@ -54,10 +62,14 @@ public class StdRuleStoreDao implements RuleStoreDao {
 	}
 
 	@Override
-	public RuleMapping ruleMappingByCode(String shopCode, String code) {
+	public RuleMapping ruleMappingByCode(String shopCode, String code) {		
 		Query<RuleMapping> query = ((AdvancedDatastore) datastore)
-				.createQuery(ruleMappingCollectionName, RuleMapping.class).field("shopCode").equal(shopCode)
-				.field("code").equal(code);
+				.createQuery(ruleMappingCollectionName, RuleMapping.class);
+		if (shopCode != null) {
+			query.field("shopCode").equal(shopCode);
+		}
+		query.field("code").equal(code);
+		
 		RuleMapping mapping = query.get();
 
 		return mapping;

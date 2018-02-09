@@ -726,10 +726,28 @@ public class XCartServiceImpl implements CartService {
 			ruleSet.addCodeRule(key, rule);
 		}
 	}
-
+	
+	@Override
+	@Deprecated
+	public void addCodeRule(Cart cart, String key, RuleInstance rule) {
+		CartRuleSet ruleSet = getCartRuleSet(null, cart);
+		if (ruleSet != null) {
+			ruleSet.addCodeRule(key, rule);
+		}
+	}
+	
 	@Override
 	public void clearCodeRules(String shopCode, Cart cart) {
 		CartRuleSet ruleSet = getCartRuleSet(shopCode, cart);
+		if (ruleSet != null) {
+			ruleSet.clearCodeRules();
+		}
+	}
+	
+	@Override
+	@Deprecated
+	public void clearCodeRules(Cart cart) {
+		CartRuleSet ruleSet = getCartRuleSet(null, cart);
 		if (ruleSet != null) {
 			ruleSet.clearCodeRules();
 		}
@@ -742,6 +760,17 @@ public class XCartServiceImpl implements CartService {
 			return ruleSet.getCodeRules();
 		}
 
+		return null;
+	}
+	
+	@Override
+	@Deprecated
+	public Map<String, RuleInstance> getCodeRules(Cart cart) {
+		CartRuleSet ruleSet = getCartRuleSet(null, cart);
+		if (ruleSet != null) {
+			return ruleSet.getCodeRules();
+		}
+		
 		return null;
 	}
 
@@ -817,6 +846,12 @@ public class XCartServiceImpl implements CartService {
 	}
 
 	@Override
+	@Deprecated
+	public RuleInstance getCodeRuleInstance(String code) {
+		return ruleStore.instanceByCode(null, code);
+	}
+	
+	@Override
 	public Messages checkCartRules(String shopCode, Cart cart, Customer customer, Date date) {
 		Messages messages = new MessagesImpl();
 
@@ -829,6 +864,23 @@ public class XCartServiceImpl implements CartService {
 			}
 		}
 
+		return messages;
+	}
+	
+	@Override
+	@Deprecated
+	public Messages checkCartRules(Cart cart, Customer customer, Date date) {
+		Messages messages = new MessagesImpl();
+		
+		CartRuleSet ruleSet = getCartRuleSet(null, cart);
+		if (ruleSet != null) {
+			for (Entry<String, RuleInstance> entry : ruleSet.entrySet()) {
+				String key = entry.getKey();
+				RuleInstance rule = entry.getValue();
+				messages.add(checkCartRule(key, rule, date, customer));
+			}
+		}
+		
 		return messages;
 	}
 
